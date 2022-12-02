@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
@@ -547,6 +548,11 @@ namespace Microsoft.Build.Evaluation
         internal static string GetTargetPlatformVersion(string tfm, int versionPartCount = 2)
         {
             return NuGetFramework.Value.GetTargetPlatformVersion(tfm, versionPartCount);
+        }
+
+        internal static string IntersectTargetFrameworks(string left, string right)
+        {
+            return NuGetFramework.Value.IntersectTargetFrameworks(left, right);
         }
 
         internal static bool AreFeaturesEnabled(Version wave)
