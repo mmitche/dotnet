@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. -->
+<Project>
+  <PropertyGroup>
+    <!-- Obtain the original set based on whether TargetFramework or TargetFrameworks was used -->
+    <_OriginalTargetFrameworks Condition="'$(TargetFrameworks)' != ''">$(TargetFrameworks)</_OriginalTargetFrameworks>
+    <_OriginalTargetFrameworks Condition="'$(TargetFramework)' != ''">$(TargetFramework)</_OriginalTargetFrameworks>
+    <_FilteredTargetFrameworks Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '$(DotNetTargetFrameworkFilter)' != ''">$([MSBuild]::Unescape($([MSBuild]::IntersectTargetFrameworks('$(_OriginalTargetFrameworks)', '$(DotNetTargetFrameworkFilter)'))))</_FilteredTargetFrameworks>
+    <TargetFrameworks Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '$(_FilteredTargetFrameworks.Contains(';'))'">$(_FilteredTargetFrameworks)</TargetFrameworks>
+    <TargetFramework Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '!$(_FilteredTargetFrameworks.Contains(';'))'">$(_FilteredTargetFrameworks)</TargetFramework>
+  </PropertyGroup>
+</Project>
