@@ -96,7 +96,7 @@ namespace Microsoft.Build.Evaluation
             return version.ToString(Math.Max(nonZeroVersionParts, minVersionPartCount));
         }
 
-        public static string IntersectTargetFrameworks(string left, string right)
+        public string IntersectTargetFrameworks(string left, string right)
         {
             IEnumerable<(string originalTfm, object parsedTfm)> leftFrameworks = ParseTfms(left);
             IEnumerable<(string originalTfm, object parsedTfm)> rightFrameworks = ParseTfms(right);
@@ -124,7 +124,7 @@ namespace Microsoft.Build.Evaluation
 
             return tfmList;
 
-            static IEnumerable<(string originalTfm, object parsedTfm)> ParseTfms(string desiredTargetFrameworks)
+            IEnumerable<(string originalTfm, object parsedTfm)> ParseTfms(string desiredTargetFrameworks)
             {
                 return desiredTargetFrameworks.Split(new char[] {';'}, StringSplitOptions.RemoveEmptyEntries).Select(tfm =>
                 {
