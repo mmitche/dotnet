@@ -108,7 +108,7 @@ namespace Microsoft.Build.Evaluation
                 // Remove any target frameworks that do not match one desired framework on framework + version.
                 if (rightFrameworks.Any(r =>
                         (FrameworkProperty.GetValue(l.parsedTfm) as string).Equals(FrameworkProperty.GetValue(r.parsedTfm) as string, StringComparison.OrdinalIgnoreCase) &&
-                        (((AllFrameworkVersionsProperty.GetValue(l.parsedTfm) as bool) && (AllFrameworkVersionsProperty.GetValue(r.parsedTfm) as bool)) ||
+                        (((Convert.ToBoolean(AllFrameworkVersionsProperty.GetValue(l.parsedTfm))) && (Convert.ToBoolean(AllFrameworkVersionsProperty.GetValue(r.parsedTfm)))) ||
                          ((VersionProperty.GetValue(l.parsedTfm) as Version) == (VersionProperty.GetValue(r.parsedTfm) as Version)))))
                 {
                     if (string.IsNullOrEmpty(tfmList))
