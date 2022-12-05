@@ -113,11 +113,11 @@ namespace Microsoft.Build.Evaluation
                 {
                     if (string.IsNullOrEmpty(tfmList))
                     {
-                        tfmList = framework.originalTfm;
+                        tfmList = l.originalTfm;
                     }
                     else
                     {
-                        tfmList += $";{framework.originalTfm}";
+                        tfmList += $";{l.originalTfm}";
                     }
                 }
             }
