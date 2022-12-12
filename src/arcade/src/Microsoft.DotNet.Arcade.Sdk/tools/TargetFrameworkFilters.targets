@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+
+  <PropertyGroup>
+    <!-- Obtain the original set based on whether TargetFramework or TargetFrameworks was used -->
+    <_OriginalTargetFrameworks Condition="'$(TargetFrameworks)' != ''">$(TargetFrameworks)</_OriginalTargetFrameworks>
+    <_OriginalTargetFrameworks Condition="'$(TargetFramework)' != ''">$(TargetFramework)</_OriginalTargetFrameworks>
+    <_FilteredTargetFrameworks Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '$(DotNetTargetFrameworkFilter)' != ''">$([MSBuild]::Unescape($([MSBuild]::IntersectTargetFrameworks('$(_OriginalTargetF$    <TargetFrameworks Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '$(_FilteredTargetFrameworks.Contains(';'))'">$(_FilteredTargetFrameworks)</_FilteredTargetFrameworks>
+    <TargetFramework Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '!$(_FilteredTargetFrameworks.Contains(';'))' and '$(TargetFramework)' != ''">$(_FilteredTargetFrameworks)</TargetFramework>
+    <TargetFrameworks Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '!$(_FilteredTargetFrameworks.Contains(';'))' and '$(TargetFrameworks)' != ''">$(_FilteredTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+</Project>
