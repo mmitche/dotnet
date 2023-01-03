@@ -3,11 +3,17 @@
 <Project>
   <PropertyGroup>
     <!-- Obtain the original set based on whether TargetFramework or TargetFrameworks was used -->
-    <_OriginalTargetFrameworks Condition="'$(TargetFrameworks)' != ''">$(TargetFrameworks)</_OriginalTargetFrameworks>
-    <_OriginalTargetFrameworks Condition="'$(TargetFramework)' != ''">$(TargetFramework)</_OriginalTargetFrameworks>
-    <_FilteredTargetFrameworks Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '$(DotNetTargetFrameworkFilter)' != ''">$([MSBuild]::Unescape($([MSBuild]::IntersectTargetFrameworks('$(_OriginalTargetFrameworks)', '$(DotNetTargetFrameworkFilter)'))))</_FilteredTargetFrameworks>
-    <!-- Maintain usage of the original property -->
-    <TargetFrameworks Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '$(TargetFrameworks)' != ''">$(_FilteredTargetFrameworks)</TargetFrameworks>
-    <TargetFramework Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '$(TargetFramework)' != ''">$(_FilteredTargetFrameworks)</TargetFramework>
+    <_EnableTargetFrameworkFiltering>false</_EnableTargetFrameworkFiltering>
+    <_EnableTargetFrameworkFiltering Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '$(DotNetTargetFrameworkFilter)' != ''">true</_EnableTargetFrameworkFiltering>
   </PropertyGroup>
+
+  <PropertyGroup Condition="$(_EnableTargetFrameworkFiltering)">
+    <_OriginalTargetFrameworks Condition="$(TargetFrameworks)' != ''">$(TargetFrameworks)</_OriginalTargetFrameworks>
+    <_OriginalTargetFrameworks Condition="'$(TargetFramework)' != ''">$(TargetFramework)</_OriginalTargetFrameworks>
+    <_FilteredTargetFrameworks>$([MSBuild]::Unescape($([MSBuild]::IntersectTargetFrameworks('$(_OriginalTargetFrameworks)', '$(DotNetTargetFrameworkFilter)'))))</_FilteredTargetFrameworks>
+    <!-- Maintain usage of the original property -->
+    <TargetFrameworks Condition="'$(TargetFrameworks)' != ''">$(_FilteredTargetFrameworks)</TargetFrameworks>
+    <TargetFramework Condition="'$(TargetFramework)' != ''">$(_FilteredTargetFrameworks)</TargetFramework>
+  </PropertyGroup>
+
 </Project>
