@@ -6,7 +6,8 @@
     <_OriginalTargetFrameworks Condition="'$(TargetFrameworks)' != ''">$(TargetFrameworks)</_OriginalTargetFrameworks>
     <_OriginalTargetFrameworks Condition="'$(TargetFramework)' != ''">$(TargetFramework)</_OriginalTargetFrameworks>
     <_FilteredTargetFrameworks Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '$(DotNetTargetFrameworkFilter)' != ''">$([MSBuild]::Unescape($([MSBuild]::IntersectTargetFrameworks('$(_OriginalTargetFrameworks)', '$(DotNetTargetFrameworkFilter)'))))</_FilteredTargetFrameworks>
-    <TargetFrameworks Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '$(_FilteredTargetFrameworks.Contains(';'))'">$(_FilteredTargetFrameworks)</TargetFrameworks>
-    <TargetFramework Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '!$(_FilteredTargetFrameworks.Contains(';'))'">$(_FilteredTargetFrameworks)</TargetFramework>
+    <!-- Maintain usage of the original property -->
+    <TargetFrameworks Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '$(TargetFrameworks)' != ''">$(_FilteredTargetFrameworks)</TargetFrameworks>
+    <TargetFramework Condition="'$(NoTargetFrameworkFiltering)' != 'true' and '$(TargetFramework)' != ''">$(_FilteredTargetFrameworks)</TargetFramework>
   </PropertyGroup>
 </Project>
