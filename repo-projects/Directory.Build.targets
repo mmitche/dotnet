@@ -247,15 +247,27 @@
       <_CurrentAdditionalAssetDirs Include="$(SourceBuiltToolsetDir)" Condition="Exists('$(SourceBuiltToolsetDir)')" />
     </ItemGroup>
 
+    <Error Conditon="'$(PackageVersionPropsFlowType)' != '' and '$(PackageVersionPropsFlowType)' != 'Default' and 
+                     '$(PackageVersionPropsFlowType)' != 'AllPackages' and '$(PackageVersionPropsFlowType)' != 'DependenciesOnly'"
+      Text="Invalid PackageVersionPropsFlowType '$(PackageVersionPropsFlowType)'. Must be 'Default', 'AllPackages' or 'DependenciesOnly'." />
+
+    <PropertyGroup>
+      <_VersionDetailsXml Condition="'$(PackageVersionPropsFlowType)' == 'DependenciesOnly'">$(ProjectDirectory)/eng/Version.Details.xml</_VersionDetailsXml>
+    </PropertyGroup>
+
     <!-- Write the build input properties, then save off a copy that will be used for generating usage reports later -->
     <WriteBuildInputProps NuGetPackages="@(_CurrentSourceBuiltPackages)"
                            ExtraProperties="@(ExtraPackageVersionPropsPackageInfo)"
+                           VersionPropsFlowType="$(PackageVersionPropsFlowType)"
+                           VersionDetails="$(_VersionDetailsXml)"
                            AdditionalAssetDirs="@(_CurrentAdditionalAssetDirs)"
                            OutputPath="$(CurrentSourceBuiltPackageVersionPropsPath)" />
 
     <!-- Create previously source-built inputs info -->
     <WriteBuildInputProps NuGetPackages="@(_PreviouslyBuiltSourceBuiltPackages)"
-                           OutputPath="$(PreviouslySourceBuiltPackageVersionPropsPath)" />
+                          VersionPropsFlowType="$(PackageVersionPropsFlowType)"
+                          VersionDetails="$(_VersionDetailsXml)"
+                          OutputPath="$(PreviouslySourceBuiltPackageVersionPropsPath)" />
 
     <!-- Rename MicrosoftAspNetCoreAppRuntimePackageVersion so it isn't used
          Fixes https://github.com/dotnet/installer/issues/14492 -->
@@ -279,7 +291,7 @@
                       Lines="$(PackageVersionsPropsContents)"
                       Overwrite="true" />
 
-    <Message Importance="High" Text="$(RepositoryName) using package version properties saved at $(CurrentSourceBuiltPackageVersionPropsPath) and $(_PreviouslyBuiltSourceBuiltPackages)" />
+    <Message Importance="High" Text="$(RepositoryName) using package version properties saved at $(CurrentSourceBuiltPackageVersionPropsPath) and $(PreviouslySourceBuiltPackageVersionPropsPath)" />
 
     <WriteLinesToFile File="$(RepoCompletedSemaphorePath)CreateBuildInputProps.complete" Overwrite="true" />
   </Target>

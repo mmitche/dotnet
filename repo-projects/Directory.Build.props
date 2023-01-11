@@ -27,6 +27,7 @@
     <CurrentSourceBuiltPackageVersionPropsPath>$(IntermediatePath)PackageVersions.$(RepositoryName).Current.props</CurrentSourceBuiltPackageVersionPropsPath>
     <PreviouslySourceBuiltPackageVersionPropsPath>$(IntermediatePath)PackageVersions.$(RepositoryName).Previous.props</PreviouslySourceBuiltPackageVersionPropsPath>
     <PackageVersionPropsPath>$(IntermediatePath)PackageVersions.$(RepositoryName).props</PackageVersionPropsPath>
+    <PackageVersionPropsFlowType>Default</PackageVersionPropsFlowType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
