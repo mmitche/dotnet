@@ -165,7 +165,7 @@ namespace Microsoft.DotNet.Build.Tasks
         /// <returns>Set of <paramref name="input"/> that appears in <paramref name="dependencies"/></returns>
         private IEnumerable<VersionEntry> FilterNonDependencies(IEnumerable<VersionEntry> input, HashSet<string> dependencies)
         {
-            return input.Where(entry => dependencies.Contains(entry.Name));
+            return input.Where(entry => dependencies.Contains(entry.Name, StringComparison.OrdinalIgnoreCase));
         }
 
         public override bool Execute()
@@ -234,6 +234,12 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 packageElementsToWrite = FilterNonDependencies(packageElementsToWrite, dependencies);
                 additionalAssetElementsToWrite = FilterNonDependencies(additionalAssetElementsToWrite, dependencies);
+
+                Log.LogMessage(MessageImportance.High, $"Afterwards: {packageElementsToWrite.Count()}.");
+                foreach (var element in packageElementsToWrite)
+                {
+                    Log.LogMessage(MessageImportance.High, $"{element.Name}");
+                }
             }
 
             Directory.CreateDirectory(Path.GetDirectoryName(OutputPath));
