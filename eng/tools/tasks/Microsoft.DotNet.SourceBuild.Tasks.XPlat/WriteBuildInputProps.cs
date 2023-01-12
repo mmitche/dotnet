@@ -221,6 +221,12 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 var dependencies = GetDependences();
 
+                Log.LogMessage(MessageImportance.High, $"Retrieved {dependencies.Count()} from {VersionDetails}");
+                foreach (var dep in dependencies)
+                {
+                    Log.LogMessage(MessageImportance.High, $"{dep}");
+                }
+
                 if (Log.HasLoggedErrors)
                 {
                     return false;
