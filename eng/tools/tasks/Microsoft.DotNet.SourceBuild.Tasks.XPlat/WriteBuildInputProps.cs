@@ -226,20 +226,8 @@ namespace Microsoft.DotNet.Build.Tasks
                     return false;
                 }
 
-                Log.LogMessage(MessageImportance.High, $"Filtering {packageElementsToWrite.Count()} inputs.");
-                foreach (var element in packageElementsToWrite)
-                {
-                    Log.LogMessage(MessageImportance.High, $"{element.Name}");
-                }
-
                 packageElementsToWrite = FilterNonDependencies(packageElementsToWrite, dependencies);
                 additionalAssetElementsToWrite = FilterNonDependencies(additionalAssetElementsToWrite, dependencies);
-
-                Log.LogMessage(MessageImportance.High, $"Afterwards: {packageElementsToWrite.Count()}.");
-                foreach (var element in packageElementsToWrite)
-                {
-                    Log.LogMessage(MessageImportance.High, $"{element.Name}");
-                }
             }
 
             Directory.CreateDirectory(Path.GetDirectoryName(OutputPath));
