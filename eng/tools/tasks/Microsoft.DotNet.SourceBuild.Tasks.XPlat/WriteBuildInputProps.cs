@@ -165,7 +165,7 @@ namespace Microsoft.DotNet.Build.Tasks
         /// <returns>Set of <paramref name="input"/> that appears in <paramref name="dependencies"/></returns>
         private IEnumerable<VersionEntry> FilterNonDependencies(IEnumerable<VersionEntry> input, HashSet<string> dependencies)
         {
-            return input.Where(entry => dependencies.Contains(entry.Name, StringComparison.OrdinalIgnoreCase));
+            return input.Where(entry => dependencies.Contains(entry.Name));
         }
 
         public override bool Execute()
