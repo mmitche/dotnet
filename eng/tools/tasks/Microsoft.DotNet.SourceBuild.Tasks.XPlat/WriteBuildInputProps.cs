@@ -173,7 +173,7 @@ namespace Microsoft.DotNet.Build.Tasks
             if (VersionPropsFlowType != AllPackagesVersionPropsFlowType &&
                 VersionPropsFlowType != DependenciesOnlyVersionPropsFlowType)
             {
-                Log.LogError("Valid version flow types are 'DependenciesOnly' and 'AllPackages'");
+                Log.LogError($"Valid version flow types are '{DependenciesOnlyVersionPropsFlowType}' and '{AllPackagesVersionPropsFlowType}'");
                 return !Log.HasLoggedErrors;
             }
 
@@ -217,7 +217,7 @@ namespace Microsoft.DotNet.Build.Tasks
             var packageElementsToWrite = latestPackages;
             var additionalAssetElementsToWrite = additionalAssets;
 
-            if (VersionPropsFlowType == DependenciesOnly)
+            if (VersionPropsFlowType == DependenciesOnlyVersionPropsFlowType)
             {
                 var dependencies = GetDependences();
 
@@ -297,7 +297,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             sw.WriteLine($"  <!-- Versions of {entryType} produced by earlier stages of the build -->");
-            if (VersionPropsFlowType == DependenciesOnly)
+            if (VersionPropsFlowType == DependenciesOnlyVersionPropsFlowType)
             {
                 sw.WriteLine(@"  <!-- Only those packages/assets that are explicit dependencies of this repo are included. -->");
             }
