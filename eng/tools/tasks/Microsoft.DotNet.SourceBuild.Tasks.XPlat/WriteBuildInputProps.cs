@@ -28,8 +28,8 @@ namespace Microsoft.DotNet.Build.Tasks
     /// includes package version numbers that should be used by the repo build and additional special properties.
     /// 
     /// There are two types of input props that can be written:
-    /// - Versions of union of all packages produced by the builds are added. (VersionFlowType.AllPackages)
-    /// - Only versions of packages that are listed as dependencies of a repo are added. (VersionFlowType.DependenciesOnly)
+    /// - Versions of union of all packages produced by the builds are added. (AllPackages)
+    /// - Only versions of packages that are listed as dependencies of a repo are added. (DependenciesOnly)
     ///
     /// The former represents the current way that source build works for most repos. The latter represents the desired
     /// methodology (PVP Flow). PVP flow closely matches how the product is built in non-source-build mode.
@@ -217,7 +217,7 @@ namespace Microsoft.DotNet.Build.Tasks
             var packageElementsToWrite = latestPackages;
             var additionalAssetElementsToWrite = additionalAssets;
 
-            if (VersionPropsFlowType == VersionFlowType.DependenciesOnly)
+            if (VersionPropsFlowType == DependenciesOnly)
             {
                 var dependencies = GetDependences();
 
@@ -297,7 +297,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             sw.WriteLine($"  <!-- Versions of {entryType} produced by earlier stages of the build -->");
-            if (VersionPropsFlowType == VersionFlowType.DependenciesOnly)
+            if (VersionPropsFlowType == DependenciesOnly)
             {
                 sw.WriteLine(@"  <!-- Only those packages/assets that are explicit dependencies of this repo are included. -->");
             }
