@@ -247,9 +247,8 @@
       <_CurrentAdditionalAssetDirs Include="$(SourceBuiltToolsetDir)" Condition="Exists('$(SourceBuiltToolsetDir)')" />
     </ItemGroup>
 
-    <Error Condition="'$(PackageVersionPropsFlowType)' != '' and '$(PackageVersionPropsFlowType)' != 'Default' and 
-                     '$(PackageVersionPropsFlowType)' != 'AllPackages' and '$(PackageVersionPropsFlowType)' != 'DependenciesOnly'"
-      Text="Invalid PackageVersionPropsFlowType '$(PackageVersionPropsFlowType)'. Must be 'Default', 'AllPackages' or 'DependenciesOnly'." />
+    <Error Condition="'$(PackageVersionPropsFlowType)' != 'AllPackages' and '$(PackageVersionPropsFlowType)' != 'DependenciesOnly'"
+      Text="Invalid PackageVersionPropsFlowType '$(PackageVersionPropsFlowType)'. Must be 'AllPackages' or 'DependenciesOnly'." />
 
     <PropertyGroup>
       <_VersionDetailsXml Condition="'$(PackageVersionPropsFlowType)' == 'DependenciesOnly'">$(ProjectDirectory)/eng/Version.Details.xml</_VersionDetailsXml>

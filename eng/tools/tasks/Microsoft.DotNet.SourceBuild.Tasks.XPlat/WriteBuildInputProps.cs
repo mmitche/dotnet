@@ -17,13 +17,6 @@ using System.Xml;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public enum VersionFlowType
-    {
-        AllPackages,
-        DependenciesOnly,
-        Default = AllPackages
-    }
-
     public class VersionEntry
     {
         public string Name;
@@ -51,6 +44,10 @@ namespace Microsoft.DotNet.Build.Tasks
         private const string PinnedAttributeName = "Pinned";
         private const string DependencyAttributeName = "Dependency";
         private const string NameAttributeName = "Name";
+
+        private const string AllPackagesVersionPropsFlowType = "AllPackages";
+        private const string DependenciesOnlyVersionPropsFlowType = "DependenciesOnly";
+        private const string DefaultVersionPropsFlowType = AllPackagesVersionPropsFlowType;
 
         [Required]
         public ITaskItem[] NuGetPackages { get; set; }
@@ -89,7 +86,7 @@ namespace Microsoft.DotNet.Build.Tasks
         /// Version.Details.xml will show up. If DependenciesOnly is used, requires setting
         /// the VersionDetails task property to the valid Version.Details.xml path.
         /// </summary>
-        public VersionFlowType VersionPropsFlowType { get; set; } = VersionFlowType.Default;
+        public string VersionPropsFlowType { get; set; } = DefaultVersionPropsFlowType;
 
         /// <summary>
         /// If VersionPropsFlowType is set to DependenciesOnly, should be the path to the Version.Detail.xml file for the repo.
@@ -173,7 +170,14 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
-            if (VersionPropsFlowType == VersionFlowType.DependenciesOnly && !File.Exists(VersionDetails))
+            if (VersionPropsFlowType != AllPackagesVersionPropsFlowType &&
+                VersionPropsFlowType != DependenciesOnlyVersionPropsFlowType)
+            {
+                Log.LogError("Valid version flow types are 'DependenciesOnly' and 'AllPackages'");
+                return !Log.HasLoggedErrors;
+            }
+
+            if (VersionPropsFlowType == AllPackagesVersionPropsFlowType && !File.Exists(VersionDetails))
             {
                 Log.LogError("When version flow type is DependenciesOnly, VersionDetails must point to a valid path to the Version.Details.xml file for the repo.");
                 return !Log.HasLoggedErrors;
