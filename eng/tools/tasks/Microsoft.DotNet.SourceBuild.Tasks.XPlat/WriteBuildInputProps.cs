@@ -221,15 +221,15 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 var dependencies = GetDependences();
 
-                Log.LogMessage(MessageImportance.High, $"Retrieved {dependencies.Count()} from {VersionDetails}");
-                foreach (var dep in dependencies)
-                {
-                    Log.LogMessage(MessageImportance.High, $"{dep}");
-                }
-
                 if (Log.HasLoggedErrors)
                 {
                     return false;
+                }
+
+                Log.LogMessage(MessageImportance.High, $"Filtering {packageElementsToWrite.Count()} inputs.");
+                foreach (var element in packageElementsToWrite)
+                {
+                    Log.LogMessage(MessageImportance.High, $"{dep.Name}");
                 }
 
                 packageElementsToWrite = FilterNonDependencies(packageElementsToWrite, dependencies);
