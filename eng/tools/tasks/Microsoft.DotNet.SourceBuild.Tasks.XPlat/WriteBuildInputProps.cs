@@ -229,7 +229,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 Log.LogMessage(MessageImportance.High, $"Filtering {packageElementsToWrite.Count()} inputs.");
                 foreach (var element in packageElementsToWrite)
                 {
-                    Log.LogMessage(MessageImportance.High, $"{dep.Name}");
+                    Log.LogMessage(MessageImportance.High, $"{element.Name}");
                 }
 
                 packageElementsToWrite = FilterNonDependencies(packageElementsToWrite, dependencies);
