@@ -112,7 +112,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 return null;
             }
 
-            HashSet<string> dependencyNames = new HashSet<string>();
+            HashSet<string> dependencyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             // Load the nodes, filter those that are not pinned, and 
             XmlNodeList dependencyNodes = document.DocumentElement.SelectNodes($"//{DependencyAttributeName}");
