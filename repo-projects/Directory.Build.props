@@ -39,7 +39,7 @@
 
   <!-- A human-readable description of what's building and why. -->
   <PropertyGroup>
-    <ProjectBuildReason>'$(RepositoryName) in tarball'</ProjectBuildReason>
+    <ProjectBuildReason>'$(RepositoryName)'</ProjectBuildReason>
   </PropertyGroup>
 
   <ItemGroup>
@@ -48,6 +48,7 @@
     <EnvironmentVariables Include="DotNetPackageVersionPropsPath=$(PackageVersionPropsPath)" />
     <EnvironmentVariables Include="DotNetRestorePackagesPath=$(PackagesDir)" />
     <EnvironmentVariables Include="DotNetBuildOffline=true" />
+    <EnvironmentVariables Include="SuppressTfmSupportBuildWarnings=true" />
 
     <!-- Ensure the SDK (Core-SDK/Installer) doesn't add an online source. -->
     <EnvironmentVariables Include="AddDotnetfeedProjectSource=false" />
@@ -67,7 +68,6 @@
 
     <EnvironmentVariables Include="PreReleaseVersionLabel=$(PreReleaseVersionLabel)" />
     <EnvironmentVariables Include="PackageVersionStamp=$(PreReleaseVersionLabel)" />
-    <EnvironmentVariables Include="PB_VersionStamp=$(PreReleaseVersionLabel)" />
 
     <!-- We pass '-ci', but also apply ci mode via env var for edge cases. (E.g. misbehaving inner builds.) -->
     <EnvironmentVariables Include="ContinuousIntegrationBuild=true" />

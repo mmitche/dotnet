@@ -7,9 +7,9 @@
 
   <PropertyGroup>
     <OverrideTargetRid>$(TargetRid)</OverrideTargetRid>
-    <OverrideTargetRid Condition="'$(TargetOS)' == 'OSX'">osx-x64</OverrideTargetRid>
-    <OverrideTargetRid Condition="'$(TargetOS)' == 'FreeBSD'">freebsd-x64</OverrideTargetRid>
-    <OverrideTargetRid Condition="'$(TargetOS)' == 'Windows_NT'">win-x64</OverrideTargetRid>
+    <OverrideTargetRid Condition="'$(TargetOS)' == 'OSX'">osx-$(Platform)</OverrideTargetRid>
+    <OverrideTargetRid Condition="'$(TargetOS)' == 'FreeBSD'">freebsd-$(Platform)</OverrideTargetRid>
+    <OverrideTargetRid Condition="'$(TargetOS)' == 'Windows_NT'">win-$(Platform)</OverrideTargetRid>
     <OSNameOverride>$(OverrideTargetRid.Substring(0, $(OverrideTargetRid.IndexOf("-"))))</OSNameOverride>
 
     <!-- Determine target portable rid based on bootstrap SDK's portable rid -->
@@ -48,9 +48,6 @@
     <DependencyVersionInputRepoApiImplemented>true</DependencyVersionInputRepoApiImplemented>
 
     <NuGetConfigFile>$(ProjectDirectory)NuGet.config</NuGetConfigFile>
-
-    <!-- This repo uses text-only template packages from the internal transport feed. -->
-    <SetUpInternalTransportFeed>true</SetUpInternalTransportFeed>
 
     <!-- CS9057 - Caused by incoherency of analyzer assemblies during pre-release builds. -->
     <RepoNoWarns>CS9057</RepoNoWarns>

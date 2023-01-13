@@ -135,6 +135,16 @@ tar -zxf artifacts/x64/Release/dotnet-sdk-8.0.100-centos.8-x64.tar.gz -C $HOME/.
 ln -s $HOME/.dotnet/dotnet /usr/bin/dotnet
 ```
 
+### Codespaces
+
+You can also utilize [GitHub Codespaces](https://github.com/features/codespaces) where you can find preset containers in this repository.
+
+### Exporting a source archive
+
+In case you'd like to export a more lightweight archive of sources that can be built outside of this git repository, a simple copy of the working tree won't do.
+The build is using some git metadata (information from the `.git` directory) that are needed to be kept with the sources.
+To export a `tar.gz` archive of the sources, you need to use the `eng/pack-sources.sh` script from within a clone of the VMR checked out at the revision that you're interested in.
+
 ## List of components
 
 To enable full offline source-building of the VMR, we have no other choice than to synchronize all the necessary code into the VMR. This also includes any code referenced via git submodules. More details on why and how this is done can be found here:
