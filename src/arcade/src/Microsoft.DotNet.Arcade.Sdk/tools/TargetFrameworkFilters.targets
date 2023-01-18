@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="$(_EnableTargetFrameworkFiltering)">
-    <_OriginalTargetFrameworks Condition="$(TargetFrameworks)' != ''">$(TargetFrameworks)</_OriginalTargetFrameworks>
+    <_OriginalTargetFrameworks Condition="'$(TargetFrameworks)' != ''">$(TargetFrameworks)</_OriginalTargetFrameworks>
     <_OriginalTargetFrameworks Condition="'$(TargetFramework)' != ''">$(TargetFramework)</_OriginalTargetFrameworks>
     <_FilteredTargetFrameworks>$([MSBuild]::Unescape($([MSBuild]::IntersectTargetFrameworks('$(_OriginalTargetFrameworks)', '$(DotNetTargetFrameworkFilter)'))))</_FilteredTargetFrameworks>
     <!-- Maintain usage of the original property -->
