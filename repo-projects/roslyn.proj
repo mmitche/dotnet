@@ -20,7 +20,6 @@
     <LogVerbosityOptOut>true</LogVerbosityOptOut>
     <GlobalJsonFile>$(ProjectDirectory)global.json</GlobalJsonFile>
 
-    <EnvironmentVariables Include="DotNetTargetFrameworkFilter="netcoreapp3.1;net6.0;net7.0;net8.0;netstandard2.0" />
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,6 +32,10 @@
   <ItemGroup>
     <UseSourceBuiltSdkOverride Include="@(ArcadeSdkOverride)" />
     <UseSourceBuiltSdkOverride Include="@(WindowsDesktopSdkOverride)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EnvironmentVariables Include="$([MSBuild]::Escape('DotNetTargetFrameworkFilter=netcoreapp3.1;net6.0;net7.0;net8.0;netstandard2.0'))" />
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
