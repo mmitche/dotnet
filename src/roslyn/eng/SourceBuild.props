@@ -12,7 +12,6 @@
   <Target Name="ConfigureInnerBuildArg" BeforeTargets="GetSourceBuildCommandConfiguration">
     <PropertyGroup>
       <InnerBuildArgs>$(InnerBuildArgs) /p:Projects="$(InnerSourceBuildRepoRoot)\Roslyn.sln"</InnerBuildArgs>
-      <InnerBuildArgs>$(InnerBuildArgs) /p:DotNetTargetFrameworkFilter="netcoreapp3.1%3Bnet6.0%3Bnet7.0%3Bnet8.0%3Bnetstandard2.0"</InnerBuildArgs>
     </PropertyGroup>
   </Target>
 

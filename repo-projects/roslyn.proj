@@ -19,6 +19,8 @@
     <RepoApiImplemented>false</RepoApiImplemented>
     <LogVerbosityOptOut>true</LogVerbosityOptOut>
     <GlobalJsonFile>$(ProjectDirectory)global.json</GlobalJsonFile>
+
+    <EnvironmentVariables Include="DotNetTargetFrameworkFilter="netcoreapp3.1;net6.0;net7.0;net8.0;netstandard2.0" />
   </PropertyGroup>
 
   <ItemGroup>
