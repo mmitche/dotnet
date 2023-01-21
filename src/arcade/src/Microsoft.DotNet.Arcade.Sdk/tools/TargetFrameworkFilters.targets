@@ -14,6 +14,8 @@
     <!-- Maintain usage of the original property -->
     <TargetFrameworks Condition="'$(TargetFrameworks)' != ''">$(_FilteredTargetFrameworks)</TargetFrameworks>
     <TargetFramework Condition="'$(TargetFramework)' != ''">$(_FilteredTargetFrameworks)</TargetFramework>
+    <!-- Suppress targets if filtering removed all targets -->
+    <_SuppressAllTargets Condition="'$(TargetFramework)' == '' and '$(TargetFrameworks)' == '' and '$(_OriginalTargetFrameworks)' != ''">true</_SuppressAllTargets>
   </PropertyGroup>
 
 </Project>
