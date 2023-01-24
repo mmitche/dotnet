@@ -32,13 +32,6 @@ namespace Microsoft.TemplateEngine.Authoring.TemplateVerifier
         private readonly ICommandRunner _commandRunner = new CommandRunner();
         private readonly IPhysicalFileSystemEx _fileSystem = new PhysicalFileSystemEx();
 
-        static VerificationEngine()
-        {
-            // Customize diff output of verifier
-            VerifyDiffPlex.Initialize(OutputType.Compact);
-            VerifierSettings.UseSplitModeForUniqueDirectory();
-        }
-
         public VerificationEngine(ILogger logger)
         {
             _logger = logger;
@@ -192,6 +185,8 @@ namespace Microsoft.TemplateEngine.Authoring.TemplateVerifier
             }
             verifySettings.UseDirectory(snapshotsDir);
             verifySettings.UseMethodName(GetScenarioName(options));
+            verifySettings.UseDiffPlex(OutputType.Compact);
+            verifySettings.UseSplitModeForUniqueDirectory();
 
             if ((options.UniqueFor ?? UniqueForOption.None) != UniqueForOption.None)
             {
@@ -346,7 +341,8 @@ namespace Microsoft.TemplateEngine.Authoring.TemplateVerifier
                 .WithCustomOrVirtualHive(customHiveLocation)
                 .WithCustomExecutablePath(options.DotnetExecutablePath)
                 .WithEnvironmentVariables(options.Environment)
-                .WithWorkingDirectory(workingDir);
+                .WithWorkingDirectory(workingDir)
+                .WithNoUpdateCheck();
 
             var result = commandRunner.RunCommand(command);
             // Cleanup, unless the settings dir was externally passed

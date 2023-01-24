@@ -5,7 +5,7 @@
 
     <PropertyGroup>
         <LangVersion>preview</LangVersion>
-        <NETCoreTargetFramework>net7.0</NETCoreTargetFramework>
+        <NETCoreTargetFramework>net8.0</NETCoreTargetFramework>
         <NETStandardTargetFramework>netstandard2.0</NETStandardTargetFramework>
         <NETFullTargetFramework>net472</NETFullTargetFramework>
         <Product>Microsoft .NET Core</Product>
@@ -25,8 +25,7 @@
         <ToolsDir>$(RepoRoot)tools\</ToolsDir>
         <ToolsTempDir>$(RepoRoot).tools\</ToolsTempDir>
         <LocalizeDir>$(RepoRoot)localize\</LocalizeDir>
-        <TemplatesDir>$(ArtifactsDir)templates\</TemplatesDir>
-        <TemplatesNoTimestampDir>$(ArtifactsDir)templates-notimestamp\</TemplatesNoTimestampDir>
+        <TemplatesDir>$(RepoRoot)template_feed\</TemplatesDir>
         <SrcDir>$(RepoRoot)src\</SrcDir>
         <TestDir>$(RepoRoot)test\</TestDir>
         <StrongNameKeyId>MicrosoftAspNetCore</StrongNameKeyId>
