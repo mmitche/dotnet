@@ -11,10 +11,10 @@
     <_OriginalTargetFrameworks Condition="'$(TargetFrameworks)' != ''">$(TargetFrameworks)</_OriginalTargetFrameworks>
     <_OriginalTargetFrameworks Condition="'$(TargetFramework)' != ''">$(TargetFramework)</_OriginalTargetFrameworks>
     <_FilteredTargetFrameworks>$([MSBuild]::Unescape($([MSBuild]::IntersectTargetFrameworks('$(_OriginalTargetFrameworks)', '$(DotNetTargetFrameworkFilter)'))))</_FilteredTargetFrameworks>
-    <!-- Maintain usage of the original property -->
+    <!-- Maintain usage of the original property,  -->
     <TargetFrameworks Condition="'$(TargetFrameworks)' != ''">$(_FilteredTargetFrameworks)</TargetFrameworks>
     <TargetFramework Condition="'$(TargetFramework)' != ''">$(_FilteredTargetFrameworks)</TargetFramework>
-    <ExcludeFromBuild Condition="'$(TargetFramework)' == '' and '$(TargetFrameworks)' == '' and '$(_OriginalTargetFrameworks)' != ''">true</ExcludeFromBuild>
+    <ExcludeFromBuild Condition="'$(_FilteredTargetFrameworks)' == ''">true</ExcludeFromBuild>
   </PropertyGroup>
 
 </Project>
