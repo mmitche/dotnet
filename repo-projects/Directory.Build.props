@@ -27,6 +27,7 @@
     <!-- Paths to the version props files -->
     <CurrentSourceBuiltPackageVersionPropsPath>$(IntermediatePath)PackageVersions.$(RepositoryName).Current.props</CurrentSourceBuiltPackageVersionPropsPath>
     <PreviouslySourceBuiltPackageVersionPropsPath>$(IntermediatePath)PackageVersions.$(RepositoryName).Previous.props</PreviouslySourceBuiltPackageVersionPropsPath>
+    <RepoBuiltPackageVersionPropsPath>$(IntermediatePath)PackageVersions.$(RepositoryName).Built.props</RepoBuiltPackageVersionPropsPath>
     <PackageVersionPropsPath>$(IntermediatePath)PackageVersions.$(RepositoryName).props</PackageVersionPropsPath>
     <PackageVersionPropsFlowType>AllPackages</PackageVersionPropsFlowType>
   </PropertyGroup>

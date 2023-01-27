@@ -396,6 +396,16 @@
           Condition=" '@(_InnerPackageCacheFiles)' != '' " />
   </Target>
 
+  <Target Name="CreateBuildOutputProps"
+          AfterTargets="Package"
+          DependsOnTargets="GatherBuiltPackages"
+          Condition="'@(_BuiltPackages)'!=''">
+
+    <WritePackageVersionsProps NuGetPackages="@(_BuiltPackages)"
+          VersionPropsFlowType="AllPackages"
+          OutputPath="$(RepoBuiltPackageVersionPropsPath)" />
+  </Target>
+
   <Target Name="CopyPackage"
           AfterTargets="Package"
           Condition="'$(OutputPlacementRepoApiImplemented)' != 'true' AND ('$(PackagesOutput)' != '' OR '@(PackagesOutputList)' != '')"
