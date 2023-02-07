@@ -67,6 +67,10 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>2882fdde84f3f70fd74f9e408cc961dc07384d69</Sha>
     </Dependency>
+    <Dependency Name="Microsoft.SourceLink.GitHub" Version="1.2.0-beta-23106-02">
+      <Uri>https://github.com/dotnet/sourcelink</Uri>
+      <Sha>e52986c06a8419532dc7a6740fbdf5ecc43afb9f</Sha>
+    </Dependency>
     <Dependency Name="optimization.windows_nt-x64.IBC.CoreFx" Version="99.99.99-master-20190716.1">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-optimization</Uri>
       <Sha>d0bb63d2ec7060714e63ee4082fac48f2e57f3e2</Sha>
