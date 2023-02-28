@@ -116,6 +116,16 @@
     <EnvironmentVariables Include="CheckEolTargetFramework=false" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TrimTargetFrameworks)' == 'true'">
+    <ItemGroup>
+      <InnerBuildTfms Include="netcoreapp3.1" />
+      <InnerBuildTfms Include="net6.0" />
+      <InnerBuildTfms Include="net7.0" />
+      <InnerBuildTfms Include="net8.0" />
+      <EnvironmentVariables Include="DotNetTargetFrameworkFilter=$([MSBuild]::Escape('@(InnerBuildTfms)'))" />
+    </ItemGroup>
+  </ItemGroup>
+
   <ItemGroup Condition="'$(EnableExtraDebugging)' == 'true'">
     <!-- If MSBuild exits early, make sure debug output like 'MSBuild_*.failure.txt' ends up in a place we can see it. -->
     <EnvironmentVariables Include="MSBUILDDEBUGPATH=$(MSBuildDebugPathTargetDir)" />
