@@ -28,6 +28,9 @@
     <DetectSourceBuildIntermediateNupkgLicense Condition="'$(DetectSourceBuildIntermediateNupkgLicense)' == ''">true</DetectSourceBuildIntermediateNupkgLicense>
 
     <EnableDefaultSourceBuildIntermediateItems Condition="'$(EnableDefaultSourceBuildIntermediateItems)' == ''">true</EnableDefaultSourceBuildIntermediateItems>
+
+    <!-- This is fed into the inner source build as an environment variable (DotNetTargetFrameworkFilter) to enable filtering -->
+    <TargetFrameworkFilters Condition="'$(TrimTargetFrameworks)' == 'true'">netcoreapp3.1%3bnet6.0%3bnet7.0%3bnet8.0</TargetFrameworkFilters>
   </PropertyGroup>
 
   <Target Name="GetSourceBuildIntermediateNupkgNameConvention">
