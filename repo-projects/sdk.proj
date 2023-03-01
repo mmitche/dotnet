@@ -10,6 +10,8 @@
     <!-- Just like mono, arm does not support NativeAot -->
     <BuildCommandArgs Condition="'$(BuildArchitecture)' == 'arm'">$(BuildCommandArgs) /p:NativeAotSupported=false</BuildCommandArgs>
 
+    <TrimTargetFrameworks>true</TrimTargetFrameworks>
+
     <LogVerbosityOptOut>true</LogVerbosityOptOut>
     <BuildCommandArgs>$(BuildCommandArgs) -v $(LogVerbosity)</BuildCommandArgs>
 
