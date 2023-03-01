@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
@@ -116,18 +117,8 @@ namespace Microsoft.DotNet.GenAPI
 
             foreach (INamedTypeSymbol typeMember in typeMembers.Order())
             {
-                SyntaxNode typeDeclaration = _syntaxGenerator.DeclarationExt(typeMember, _symbolFilter);
-
-                foreach (AttributeData attribute in typeMember.GetAttributes()
-                    .Where(a => a.AttributeClass != null && _symbolFilter.Include(a.AttributeClass)))
-                {
-                    // The C# compiler emits the DefaultMemberAttribute on any type containing an indexer.
-                    // In C# it is an error to manually attribute a type with the DefaultMemberAttribute if the type also declares an indexer.
-                    if (!attribute.IsDefaultMemberAttribute() || !typeMember.HasIndexer())
-                    {
-                        typeDeclaration = _syntaxGenerator.AddAttributes(typeDeclaration, _syntaxGenerator.Attribute(attribute));
-                    }
-                }
+                SyntaxNode typeDeclaration = _syntaxGenerator.DeclarationExt(typeMember, _symbolFilter)
+                    .AddMemberAttributes(_syntaxGenerator, _symbolFilter, typeMember);
 
                 typeDeclaration = Visit(typeDeclaration, typeMember);
 
@@ -147,12 +138,16 @@ namespace Microsoft.DotNet.GenAPI
                 namedTypeNode = _syntaxGenerator.AddMembers(namedTypeNode, namedType.SynthesizeDummyFields(_symbolFilter));
             }
 
+            namedTypeNode = _syntaxGenerator.AddMembers(namedTypeNode, namedType.TryGetInternalDefaultConstructor(_symbolFilter));
+
             foreach (ISymbol member in members.Order())
             {
                 // If the method is ExplicitInterfaceImplementation and is derived from an interface that was filtered out, we must filter out it either.
                 if (member is IMethodSymbol method &&
                     method.MethodKind == MethodKind.ExplicitInterfaceImplementation &&
-                    method.ExplicitInterfaceImplementations.Any(m => !_symbolFilter.Include(m.ContainingSymbol)))
+                    method.ExplicitInterfaceImplementations.Any(m => !_symbolFilter.Include(m.ContainingSymbol) ||
+                        // if explicit interface implementation method has inaccessible type argument
+                        m.ContainingType.HasInaccessibleTypeArgument(_symbolFilter)))
                 {
                     continue;
                 }
@@ -163,20 +158,24 @@ namespace Microsoft.DotNet.GenAPI
                     continue;
                 }
 
-                SyntaxNode memberDeclaration = _syntaxGenerator.DeclarationExt(member, _symbolFilter);
-
-                foreach (AttributeData attribute in member.GetAttributes()
-                    .Where(a => a.AttributeClass != null && _symbolFilter.Include(a.AttributeClass)))
-                {
-                    memberDeclaration = _syntaxGenerator.AddAttributes(memberDeclaration, _syntaxGenerator.Attribute(attribute));
-                }
+                SyntaxNode memberDeclaration = _syntaxGenerator.DeclarationExt(member, _symbolFilter)
+                    .AddMemberAttributes(_syntaxGenerator, _symbolFilter, member);
 
                 if (member is INamedTypeSymbol nestedTypeSymbol)
                 {
                     memberDeclaration = Visit(memberDeclaration, nestedTypeSymbol);
                 }
 
-                namedTypeNode = _syntaxGenerator.AddMembers(namedTypeNode, memberDeclaration);
+                try
+                {
+                    namedTypeNode = _syntaxGenerator.AddMembers(namedTypeNode, memberDeclaration);
+                }
+                catch (InvalidOperationException e)
+                {
+                    // re-throw the InvalidOperationException with the symbol that caused it.
+                    throw new InvalidOperationException($"Adding member {member.ToDisplayString()} to the " +
+                        $"named type {namedTypeNode.ToString()} failed with an exception {e.Message}");
+                }
             }
 
             return namedTypeNode;
@@ -195,7 +194,7 @@ namespace Microsoft.DotNet.GenAPI
 
         private SyntaxNode GenerateForwardedTypeAssemblyAttributes(IAssemblySymbol assembly, SyntaxNode compilationUnit)
         {
-            foreach (INamedTypeSymbol symbol in assembly.GetForwardedTypes())
+            foreach (INamedTypeSymbol symbol in assembly.GetForwardedTypes().Where(_symbolFilter.Include))
             {
                 if (symbol.TypeKind != TypeKind.Error)
                 {
