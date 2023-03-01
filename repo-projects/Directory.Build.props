@@ -117,7 +117,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TrimTargetFrameworks)' == 'true'">
-    <EnvironmentVariables Include="DotNetTargetFrameworkFilter=&quot;netcoreapp3.1%3bnet6.0%3bnet7.0%3bnet8.0&quot;" />
+    <EnvironmentVariables Include="DotNetTargetFrameworkFilter=netcoreapp3.1%3bnet6.0%3bnet7.0%3bnet8.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(EnableExtraDebugging)' == 'true'">
