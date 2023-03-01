@@ -121,7 +121,7 @@
     <InnerBuildTfms Include="net6.0" />
     <InnerBuildTfms Include="net7.0" />
     <InnerBuildTfms Include="net8.0" />
-    <EnvironmentVariables Include="DotNetTargetFrameworkFilter=$(InnerBuildTfms)" />
+    <EnvironmentVariables Include="DotNetTargetFrameworkFilter=netcoreapp3.1;net6.0;net7.0;net8.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(EnableExtraDebugging)' == 'true'">
