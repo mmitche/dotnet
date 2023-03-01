@@ -116,12 +116,19 @@
     <EnvironmentVariables Include="CheckEolTargetFramework=false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_InnerBuildTfms Include="netcoreapp3.1" />
+    <_InnerBuildTfms Include="net6.0" />
+    <_InnerBuildTfms Include="net7.0" />
+    <_InnerBuildTfms Include="net8.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <_InnerBuildTfmsExpanded>@(InnerBuildTfms)</_InnerBuildTfmsExpanded>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(TrimTargetFrameworks)' == 'true'">
-    <InnerBuildTfms Include="netcoreapp3.1" />
-    <InnerBuildTfms Include="net6.0" />
-    <InnerBuildTfms Include="net7.0" />
-    <InnerBuildTfms Include="net8.0" />
-    <EnvironmentVariables Include="DotNetTargetFrameworkFilter=&quot;@(InnerBuildTfms)&quot;" />
+    <EnvironmentVariables Include="DotNetTargetFrameworkFilter=&quot;@(_InnerBuildTfmsExpanded)&quot;" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(EnableExtraDebugging)' == 'true'">
