@@ -3,7 +3,7 @@
   <PropertyGroup>
     <GitHubRepositoryName>installer</GitHubRepositoryName>
     <SourceBuildManagedOnly>true</SourceBuildManagedOnly>
-    <TrimTargetFrameworks>true</TrimTargetFrameworks>
+    <SourceBuildTrimNetFrameworkTargets>true</SourceBuildTrimNetFrameworkTargets>
   </PropertyGroup>
 
   <Target Name="ConfigureInnerBuildArg" BeforeTargets="GetSourceBuildCommandConfiguration">

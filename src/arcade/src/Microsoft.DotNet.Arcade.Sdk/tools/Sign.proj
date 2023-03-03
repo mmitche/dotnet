@@ -5,7 +5,7 @@
     <!-- Disable target framework filtering for top level projects -->
     <NoTargetFrameworkFiltering>true</NoTargetFrameworkFiltering>
   </PropertyGroup>
-  
+
   <Import Project="BuildStep.props" />
 
   <Import Project="$(NuGetPackageRoot)microsoft.dotnet.signtool\$(MicrosoftDotNetSignToolVersion)\build\Microsoft.DotNet.SignTool.props" />
