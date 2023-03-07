@@ -28,6 +28,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="build\**\*.*" PackagePath="build\" />
+    <Content Include="buildMultiTargeting\**\*.*" PackagePath="buildMultiTargeting\" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\CSharp\csc\AnyCpu\csc.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\AnyCpu\vbc.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
@@ -50,9 +55,6 @@
       <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/net6.0"/>
       <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/net6.0/bincore"/>
       <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/net6.0/bincore/runtimes"/>
-     
-      <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />
-      <_File Include="$(MSBuildProjectDirectory)\buildMultiTargeting\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildMultiTargeting" />
      
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
