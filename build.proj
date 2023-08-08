@@ -48,7 +48,7 @@
     </ItemGroup>
 
     <Copy SourceFiles="@(BinariesToCopy)"
-          DestinationFolder="$(OutputPath)runtime"
+          DestinationFolder="$(OutputPath)"
           Condition="'@(BinariesToCopy)'!=''" />
 
     <WriteLinesToFile File="$(CompletedSemaphorePath)CopyBinariesToBinFolder.complete" Overwrite="true" />
