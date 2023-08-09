@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <Optimize>True</Optimize>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="UnrollEqualsStartsWith.cs" />
-    <Compile Include="UnrollEqualsStartsWith_Tests.cs" />
-  </ItemGroup>
-</Project>

@@ -1,3 +1,0 @@
-<Project>
-  <Import Project="$(MSBuildThisFileDirectory)..\tools\Microsoft.DotNet.Helix.Sdk.targets"/>
-</Project>
