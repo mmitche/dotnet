@@ -197,7 +197,7 @@ if [ -d "$CUSTOM_SDK_DIR" ]; then
   # a custom location already.
   tempSdkDir=$(mktemp -d)
   echo "Copying '$CUSTOM_SDK_DIR' to '$tempSdkDir' to avoid unwanted mutation"
-  cp -r "$CUSTOM_SDK_DIR/*" "$tempSdkDir/"
+  cp -r "$CUSTOM_SDK_DIR/" "$tempSdkDir/"
   export SDK_VERSION=$("$tempSdkDir/dotnet" --version)
   export CLI_ROOT="$tempSdkDir"
   export _InitializeDotNetCli="$CLI_ROOT/dotnet"
