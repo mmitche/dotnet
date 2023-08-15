@@ -162,7 +162,8 @@
   <Target Name="CreateBuildInputProps"
           BeforeTargets="Build"
           Inputs="$(MSBuildProjectFullPath)"
-          Outputs="$(RepoCompletedSemaphorePath)CreateBuildInputProps.complete">
+          Outputs="$(RepoCompletedSemaphorePath)CreateBuildInputProps.complete"
+          Condition="'$(SkipRepoBuild)' != 'true'">
 
     <ItemGroup>
       <_CurrentSourceBuiltPackages Include="$(SourceBuiltPackagesPath)*.nupkg"
@@ -418,7 +419,7 @@
 
   <Target Name="DisplayDirSizeBeforeBuild"
           BeforeTargets="Build"
-          Condition=" '$(CleanWhileBuilding)' == 'true' ">
+          Condition=" '$(CleanWhileBuilding)' == 'true' and '$(SkipRepoBuild)' != 'true'">
     <Message Text="DirSize Before Building $(RepositoryName)" Importance="High" />
     <Exec Command="df -h $(ProjectDir)" />
   </Target>
@@ -431,14 +432,14 @@
   </Target>
   <Target Name="DisplayDirSizeAfterClean"
           AfterTargets="CleanupRepo"
-          Condition=" '$(CleanWhileBuilding)' == 'true' ">
+          Condition=" '$(CleanWhileBuilding)' == 'true' and '$(SkipRepoBuild)' != 'true'">
     <Message Text="DirSize After CleanupRepo $(RepositoryName)" Importance="High" />
     <Exec Command="df -h $(ProjectDir)" />
   </Target>
 
   <Target Name="CleanupRepo" 
           AfterTargets="RemoveBuiltPackagesFromCache"
-          Condition=" '$(CleanWhileBuilding)' == 'true' ">
+          Condition=" '$(CleanWhileBuilding)' == 'true' and '$(SkipRepoBuild)' != 'true'">
 
     <!-- Make a copy of the build logs & project.assets.json files -->
     <PropertyGroup>
@@ -571,7 +572,7 @@
 
   <Target Name="SetSourceBuiltSdkOverrides"
           BeforeTargets="Build"
-          Condition="'@(UseSourceBuiltSdkOverride)' != ''">
+          Condition="'@(UseSourceBuiltSdkOverride)' != '' and '$(SkipRepoBuild)' != 'true'">
     <ItemGroup>
       <EnvironmentVariables Include="SOURCE_BUILT_SDK_ID_%(UseSourceBuiltSdkOverride.Group)=%(UseSourceBuiltSdkOverride.Identity)" />
       <EnvironmentVariables Include="SOURCE_BUILT_SDK_VERSION_%(UseSourceBuiltSdkOverride.Group)=%(UseSourceBuiltSdkOverride.Version)" />
