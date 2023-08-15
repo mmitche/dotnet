@@ -9,6 +9,9 @@
       Setting the type to AllPackages will skip that logic.
     -->
     <PackageVersionPropsFlowType>AllPackages</PackageVersionPropsFlowType>
+    
+    <!-- Always build this project, even though it doesn't have a project source directory -->
+    <DoNotSkipOnMissingSources>true</DoNotSkipOnMissingSources>
   </PropertyGroup>
 
   <!-- This project file serves a couple of purpose.
