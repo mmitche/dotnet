@@ -469,7 +469,7 @@
   <Target Name="ExtractToolPackage"
           DependsOnTargets="GatherBuiltPackages"
           AfterTargets="Build"
-          Condition="'@(BuiltSdkPackageOverride)' != ''"
+          Condition="'@(BuiltSdkPackageOverride)' != '' and '$(SkipRepoBuild)' != 'true'"
           Inputs="$(MSBuildProjectFullPath)"
           Outputs="$(RepoCompletedSemaphorePath)ExtractToolPackage.complete">
     <ItemGroup>
@@ -520,7 +520,7 @@
 
   <Target Name="EnsurePackagesCreated"
           AfterTargets="CopyPackage"
-          Condition="'$(SkipEnsurePackagesCreated)' != 'true'"
+          Condition="'$(SkipEnsurePackagesCreated)' != 'true' and '$(SkipRepoBuild)' != 'true'"
           Inputs="$(MSBuildProjectFullPath)"
           Outputs="$(RepoCompletedSemaphorePath)EnsurePackagesCreated.complete">
     <ItemGroup>
