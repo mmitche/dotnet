@@ -11,6 +11,7 @@
       Setting the type to AllPackages will skip that logic.
     -->
     <PackageVersionPropsFlowType>AllPackages</PackageVersionPropsFlowType>
+    <SkipRepoBuild>false</SkipRepoBuild>
   </PropertyGroup>
 
   <ItemGroup>
