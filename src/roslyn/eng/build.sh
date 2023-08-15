@@ -8,6 +8,8 @@ set -u
 # Stop script if subcommand fails
 set -e
 
+set -x
+
 usage()
 {
   echo "Common settings:"
