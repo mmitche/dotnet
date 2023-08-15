@@ -236,7 +236,8 @@
   <Target Name="Build"
           DependsOnTargets="BuildRepoReferences"
           Inputs="$(MSBuildProjectFullPath)"
-          Outputs="$(RepoCompletedSemaphorePath)Build.complete">
+          Outputs="$(RepoCompletedSemaphorePath)Build.complete"
+          Condition="Exists('$(ProjectDirectory)')">
 
     <Exec Command="$(DotnetToolCommand) build-server shutdown" />
 

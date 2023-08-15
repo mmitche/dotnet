@@ -192,11 +192,11 @@ if [ -d "$CUSTOM_SDK_DIR" ]; then
   # Building a source-built SDK requires installing a general-use SDK resolver
   # that will resolve non-source built SDKs (e.g. Windows desktop) as a no-op.
   # This installation happens in the SdkResolvers directory of the SDK. Avoid
-  # mutating the custom input SDK. 
+  # mutating the custom input SDK.
   # This is not necessary when not using a custom SDK, as we download the SDK to
   # a custom location already.
   tempSdkDir=$(mktemp -d)
-  echo "Copying '$CUSTOM_SDK_DIR/*' to '$tempSdkDir' to avoid unwanted mutation"
+  echo "Copying '$CUSTOM_SDK_DIR/*' to '$tempSdkDir' to avoid mutation of original inputs"
   cp -r "$CUSTOM_SDK_DIR/"* "$tempSdkDir/"
   export SDK_VERSION=$("$tempSdkDir/dotnet" --version)
   export CLI_ROOT="$tempSdkDir"
@@ -210,12 +210,6 @@ else
     export SDK_VERSION=${BASH_REMATCH[1]}
     export CLI_ROOT="$SCRIPT_ROOT/.dotnet"
   fi
-fi
-
-# Clean up the temporary SDK if it was used
-if [ -d "$CustomDotNetSdkDir" ]; then
-  echo "Removing temporary bootstrap SDK dir '$CustomDotNetSdkDir'"
-  rm -rf $CustomDotNetSdkDir
 fi
 
 packageVersionsPath=''
