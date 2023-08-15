@@ -196,8 +196,8 @@ if [ -d "$CUSTOM_SDK_DIR" ]; then
   # This is not necessary when not using a custom SDK, as we download the SDK to
   # a custom location already.
   tempSdkDir=$(mktemp -d)
-  echo "Copying '$CUSTOM_SDK_DIR' to '$tempSdkDir' to avoid unwanted mutation"
-  cp -r "$CUSTOM_SDK_DIR/" "$tempSdkDir/"
+  echo "Copying '$CUSTOM_SDK_DIR/*' to '$tempSdkDir' to avoid unwanted mutation"
+  cp -r "$CUSTOM_SDK_DIR/"* "$tempSdkDir/"
   export SDK_VERSION=$("$tempSdkDir/dotnet" --version)
   export CLI_ROOT="$tempSdkDir"
   export _InitializeDotNetCli="$CLI_ROOT/dotnet"
