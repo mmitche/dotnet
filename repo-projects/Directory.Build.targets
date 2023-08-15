@@ -469,7 +469,7 @@
   <Target Name="ExtractToolPackage"
           DependsOnTargets="GatherBuiltPackages"
           AfterTargets="Build"
-          Condition="'@(BuiltSdkPackageOverride)' != '' and '$(SkipRepoBuild)' != 'true'"
+          Condition="'@(BuiltSdkPackageOverride)' != ''"
           Inputs="$(MSBuildProjectFullPath)"
           Outputs="$(RepoCompletedSemaphorePath)ExtractToolPackage.complete">
     <ItemGroup>
