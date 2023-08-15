@@ -212,6 +212,12 @@ else
   fi
 fi
 
+# Clean up the temporary SDK if it was used
+if [ -d "$CustomDotNetSdkDir" ]; then
+  echo "Removing temporary bootstrap SDK dir '$CustomDotNetSdkDir'"
+  rm -rf $CustomDotNetSdkDir
+fi
+
 packageVersionsPath=''
 
 if [[ "$CUSTOM_PACKAGES_DIR" != "" && -f "$CUSTOM_PACKAGES_DIR/PackageVersions.props" ]]; then
