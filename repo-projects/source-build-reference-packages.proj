@@ -14,8 +14,10 @@
     <UseBootstrapArcade>true</UseBootstrapArcade>
   </PropertyGroup>
 
-  <Target Name="AddLocalNuGetPackageCacheDirectory" BeforeTargets="Build">
-    <MakeDir Condition="'$(LocalNuGetPackageCacheDirectory)' != '' and '$(SkipRepoBuild)' != 'true'"
+  <Target Name="AddLocalNuGetPackageCacheDirectory"
+          BeforeTargets="Build"
+          Condition="'$(SkipRepoBuild)' != 'true'">
+    <MakeDir Condition="'$(LocalNuGetPackageCacheDirectory)' != ''"
              Directories="$(LocalNuGetPackageCacheDirectory)" />
 
     <AddSourceToNuGetConfig
