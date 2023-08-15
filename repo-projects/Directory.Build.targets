@@ -237,7 +237,7 @@
           DependsOnTargets="BuildRepoReferences"
           Inputs="$(MSBuildProjectFullPath)"
           Outputs="$(RepoCompletedSemaphorePath)Build.complete"
-          Condition="Exists('$(ProjectDirectory)') or '$(DoNotSkipOnMissingSources)' == 'true'">
+          Condition="'$(SkipRepoBuild)' != 'true'">
 
     <Exec Command="$(DotnetToolCommand) build-server shutdown" />
 

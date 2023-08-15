@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <Target Name="AddLocalNuGetPackageCacheDirectory" BeforeTargets="Build">
-    <MakeDir Condition="'$(LocalNuGetPackageCacheDirectory)' != ''"
+    <MakeDir Condition="'$(LocalNuGetPackageCacheDirectory)' != '' and '$(SkipRepoBuild)' != 'true'"
              Directories="$(LocalNuGetPackageCacheDirectory)" />
 
     <AddSourceToNuGetConfig
