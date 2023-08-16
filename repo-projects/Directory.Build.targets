@@ -571,11 +571,6 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="SetArcadeOverrides"
-          BeforeTargets="Build" />
-    
-  </Target>
-
   <Target Name="SetSourceBuiltSdkOverrides"
           BeforeTargets="Build"
           Condition="'@(UseSourceBuiltSdkOverride)' != ''">
