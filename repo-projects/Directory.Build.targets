@@ -29,13 +29,13 @@
          To determine whether a repo should build, invoke the repo project with the ShouldSkip target.
          The target will determine whether repo should be built. By default, a repo is not built if its
          sources are not available. -->
-    <MSBuild Projects="@(DependentProject)"
+    <MSBuild Projects="%(DependentProject.Identity)"
              Targets="GetSkipRepoBuild">
       <Output TaskParameter="TargetOutputs" PropertyName="_DependentProjectSkipRepoBuild" />
     </MSBuild>
 
     <ItemGroup>
-      <DependentProject Update="'%(DependentProject.Identity)'">
+      <DependentProject Update="%(DependentProject.Identity)">
         <SkipRepoBuild>$(_DependentProjectSkipRepoBuild)</SkipRepoBuild>
       </DependentProject>
     </ItemGroup>
