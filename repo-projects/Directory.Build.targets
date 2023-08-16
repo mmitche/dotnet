@@ -35,9 +35,11 @@
       <Output TaskParameter="TargetOutputs" ItemName="DependentProjectSkipRepoBuilds" />
     </MSBuild>
 
+    <Message Importance="High" Text="@(DependentProjectSkipRepoBuilds)" />
+
     <ItemGroup>
-      <DependentProject Update="@(DependentProjectSkipRepoBuilds -> '%(OriginalItemSpec)')">
-        <Active>%(Identity)</Active>
+      <DependentProject Update="@(DependentProjectSkipRepoBuilds)">
+        <Active>%(DependentProjectSkipRepoBuilds.SkipRepoBuild)</Active>
       </DependentProject>
     </ItemGroup>
   </Target>
