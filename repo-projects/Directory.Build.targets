@@ -31,12 +31,12 @@
          sources are not available. -->
     <MSBuild Projects="@(DependentProject)"
              Targets="GetSkipRepoBuild">
-      <Output TaskParameter="TargetOutputs" ItemName="DependentProjectSkipRepoBuilds" />
+      <Output TaskParameter="TargetOutputs" PropertyName="_DependentProjectSkipRepoBuild" />
     </MSBuild>
 
     <ItemGroup>
-      <DependentProject Condition="'%(DependentProject.Identity)' == '%(DependentProjectSkipRepoBuilds.OriginalItemSpec)'">
-        <SkipRepoBuild>%(DependentProjectSkipRepoBuilds.Identity)</SkipRepoBuild>
+      <DependentProject Update="'%(DependentProject.Identity)'">
+        <SkipRepoBuild>$(_DependentProjectSkipRepoBuild)</SkipRepoBuild>
       </DependentProject>
     </ItemGroup>
   </Target>
