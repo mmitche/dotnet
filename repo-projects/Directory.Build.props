@@ -11,7 +11,8 @@
   <PropertyGroup>
     <SourceDirectory Condition="'$(SourceDirectory)' == ''">$(RepositoryName)</SourceDirectory>
     <ProjectDirectory Condition="'$(ProjectDirectory)' == ''">$(SubmoduleDirectory)$(SourceDirectory)/</ProjectDirectory>
-    <SkipRepoBuild Condition="!Exists('$(ProjectDirectory)') and '$(DoNotSkipOnMissingSources)' != 'true'">true</SkipRepoBuild>
+    <SkipRepoBuild Condition="'$(SkipRepoBuild)' == '' and !Exists('$(ProjectDirectory)')">true</SkipRepoBuild>
+    <SkipRepoBuild Condition="'$(SkipRepoBuild)' == ''">false</SkipRepoBuild>
     <MinimalConsoleLogOutput Condition="'$(MinimalConsoleLogOutput)' == ''">true</MinimalConsoleLogOutput>
     <RepoConsoleLogFile>$(LoggingDir)$(RepositoryName).log</RepoConsoleLogFile>
     <RedirectRepoOutputToLog Condition="'$(MinimalConsoleLogOutput)' == 'true'">&gt;&gt; $(RepoConsoleLogFile) 2&gt;&amp;1</RedirectRepoOutputToLog>
