@@ -47,7 +47,7 @@
   
   <Target Name="BuildRepoReferences"
           DependsOnTargets="GetDependentProjects"
-          Condition="'@(DependentProject)' != '' and '$(SkipRepoReferences)' != 'true'">
+          Condition="'$(SkipRepoReferences)' != 'true'">
 
     <Message Importance="High"
              Text="Skipping [@(DependentProject -> '%(RepositoryName)')] needed by '$(RepositoryName)' because sources are not available."
