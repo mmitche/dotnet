@@ -22,7 +22,6 @@
     <ItemGroup>
       <DependentProject Include="@(RepositoryReference -> '%(Identity).proj')">
         <RepositoryName>%(Identity)</RepositoryName>
-        <SkipRepoBuild>false</SkipRepoBuild>
       </DependentProject>
     </ItemGroup>
 
@@ -36,7 +35,7 @@
     </MSBuild>
 
     <ItemGroup>
-      <DependentProject Update="%(DependentProjectSkipRepoBuilds.OriginalItemSpec)">
+      <DependentProject Condition="'%(DependentProject.Identity)' == '%(DependentProjectSkipRepoBuilds.OriginalItemSpec)'">
         <SkipRepoBuild>%(DependentProjectSkipRepoBuilds.Identity)</SkipRepoBuild>
       </DependentProject>
     </ItemGroup>
