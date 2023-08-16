@@ -18,39 +18,36 @@
   <UsingTask AssemblyFile="$(XPlatSourceBuildTasksAssembly)" TaskName="ReplaceTextInFile" />
 
   <!-- Retrieve the repository references, annotated as to whether they are active or not -->
-  <Target Name="GetDependentProjects" Outputs="@(DependentProject)">
+  <Target Name="GetActiveDependencyProjects" Outputs="@(ActiveDependencyProjects)">
     <ItemGroup>
-      <DependentProject Include="@(RepositoryReference -> '%(Identity).proj')">
+      <_AllDependencyProjects Include="@(RepositoryReference -> '%(Identity).proj')">
         <RepositoryName>%(Identity)</RepositoryName>
-      </DependentProject>
+      </_AllDependencyProjects>
     </ItemGroup>
 
     <!-- To enable partial builds, the graph is filtered to remove repos that are not available.
          To determine whether a repo should build, invoke the repo project with the ShouldSkip target.
          The target will determine whether repo should be built. By default, a repo is not built if its
          sources are not available. -->
-    <MSBuild Projects="%(DependentProject.Identity)"
+    <MSBuild Projects="@(_AllDependentProjects)"
              Targets="GetSkipRepoBuild">
-      <Output TaskParameter="TargetOutputs" PropertyName="_DependentProjectSkipRepoBuild" />
+      <Output TaskParameter="TargetOutputs" ItemName="_DependentProjectSkipRepoBuild" />
     </MSBuild>
 
     <ItemGroup>
-      <DependentProject Update="%(DependentProject.Identity)">
-        <SkipRepoBuild>$(_DependentProjectSkipRepoBuild)</SkipRepoBuild>
-      </DependentProject>
+      <ActiveDependencyProjects Include="@(_DependentProjectSkipRepoBuild -> '%(OriginalItemSpec)')" Condition="'%(Identity)'='true'">
+        <RepositoryName>%(RepositoryName)</RepositoryName>
+      </ActiveDependencyProjects>
     </ItemGroup>
   </Target>
   
   <Target Name="BuildRepoReferences"
-          DependsOnTargets="GetDependentProjects"
+          DependsOnTargets="GetActiveDependencyProjects"
           Condition="'$(SkipRepoReferences)' != 'true'">
 
-    <Message Importance="High"
-             Text="Skipping [@(DependentProject -> '%(RepositoryName)')] needed by '$(RepositoryName)' because sources are not available."
-             Condition="'%(SkipRepoBuild)' == 'true'"/>
-    <Message Importance="High" Text="Building dependencies [@(DependentProject -> '%(RepositoryName)')] needed by '$(RepositoryName)'." />
+    <Message Importance="High" Text="Building active dependencies [@(ActiveDependencyProjects -> '%(RepositoryName)')] needed by '$(RepositoryName)'." />
 
-    <MSBuild Projects="@(DependentProject)" Targets="Build" BuildInParallel="$(BuildInParallel)" StopOnFirstFailure="true" Condition="'%(SkipRepoBuild)' != 'true'" />
+    <MSBuild Projects="@(ActiveDependencyProjects)" Targets="Build" BuildInParallel="$(BuildInParallel)" StopOnFirstFailure="true" />
   </Target>
 
   <Target Name="AddNoWarns"
