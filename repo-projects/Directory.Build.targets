@@ -38,8 +38,8 @@
     <Message Importance="High" Text="@(DependentProjectSkipRepoBuilds)" />
 
     <ItemGroup>
-      <DependentProject Update="@(DependentProjectSkipRepoBuilds)">
-        <Active>%(DependentProjectSkipRepoBuilds.SkipRepoBuild)</Active>
+      <DependentProject Update="%(DependentProjectSkipRepoBuilds.OriginalItemSpec)">
+        <SkipRepoBuild>%(DependentProjectSkipRepoBuilds.Identity)</SkipRepoBuild>
       </DependentProject>
     </ItemGroup>
   </Target>
@@ -50,10 +50,10 @@
 
     <Message Importance="High"
              Text="Skipping [@(DependentProject -> '%(RepositoryName)')] needed by '$(RepositoryName)' because sources are not available."
-             Condition="'%(Active)' == 'false'"/>
+             Condition="'%(SkipRepoBuild)' == 'true'"/>
     <Message Importance="High" Text="Building dependencies [@(DependentProject -> '%(RepositoryName)')] needed by '$(RepositoryName)'." />
 
-    <MSBuild Projects="@(DependentProject)" Targets="Build" BuildInParallel="$(BuildInParallel)" StopOnFirstFailure="true" Condition="'%(Active)' == 'true'" />
+    <MSBuild Projects="@(DependentProject)" Targets="Build" BuildInParallel="$(BuildInParallel)" StopOnFirstFailure="true" Condition="'%(SkipRepoBuild)' != 'true'" />
   </Target>
 
   <Target Name="AddNoWarns"
