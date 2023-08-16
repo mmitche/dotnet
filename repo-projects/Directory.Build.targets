@@ -17,11 +17,32 @@
   <UsingTask AssemblyFile="$(XPlatSourceBuildTasksAssembly)" TaskName="ZipFileExtractToDirectory" />
   <UsingTask AssemblyFile="$(XPlatSourceBuildTasksAssembly)" TaskName="ReplaceTextInFile" />
 
+
   <Target Name="BuildRepoReferences" Condition="'@(RepositoryReference)' != '' and '$(SkipRepoReferences)' != 'true'">
-    <Message Importance="High" Text="Building dependencies [@(RepositoryReference)] needed by '$(RepositoryName)'." />
     <ItemGroup>
-      <_DependentProject Include="@(RepositoryReference -> '%(Identity).proj')" />
+      <_DependentProject Include="@(RepositoryReference -> '%(Identity).proj')">
+        <RepositoryName>%(Identity)</RepositoryName>
+      </_DependentProject>
     </ItemGroup>
+
+    <!-- To enable partial builds, the graph is filtered to remove repos that are not available.
+         To determine whether a repo should build, invoke the repo project with the ShouldSkip target.
+         The target will determine whether repo should be built. By default, a repo is not built if its
+         sources are not available. -->
+    <MSBuild Projects="@(_DependentProject)"
+             Targets="GetSkipRepoBuild">
+      <Output TaskParameter="TargetOutputs" ItemName="_DependentProjectSkipRepoBuilds" />
+    </MSBuild>
+
+    <ItemGroup>
+      <_SkipDependentProject Include="@(_DependentProject)" Condition="'%(SkipRepoBuild)' == 'true'" />
+      <_DependentProject Remove="@(_SkipDependentProject)" />
+    </ItemGroup>
+
+    <Message Importance="High"
+             Text="Skipping [@(_SkipDependentProject -> '%(RepositoryName)')] needed by '$(RepositoryName)' because sources are not available."
+             Condition="'@(_SkipDependentProject)' != ''"/>
+    <Message Importance="High" Text="Building dependencies [@(_DependentProject -> '%(RepositoryName)')] needed by '$(RepositoryName)'." Condition="'@(_DependentProject)' != ''" />
 
     <MSBuild Projects="@(_DependentProject)" Targets="Build" BuildInParallel="$(BuildInParallel)" StopOnFirstFailure="true" />
   </Target>
@@ -162,8 +183,7 @@
   <Target Name="CreateBuildInputProps"
           BeforeTargets="Build"
           Inputs="$(MSBuildProjectFullPath)"
-          Outputs="$(RepoCompletedSemaphorePath)CreateBuildInputProps.complete"
-          Condition="'$(SkipRepoBuild)' != 'true'">
+          Outputs="$(RepoCompletedSemaphorePath)CreateBuildInputProps.complete">
 
     <ItemGroup>
       <_CurrentSourceBuiltPackages Include="$(SourceBuiltPackagesPath)*.nupkg"
@@ -237,8 +257,7 @@
   <Target Name="Build"
           DependsOnTargets="BuildRepoReferences"
           Inputs="$(MSBuildProjectFullPath)"
-          Outputs="$(RepoCompletedSemaphorePath)Build.complete"
-          Condition="'$(SkipRepoBuild)' != 'true'">
+          Outputs="$(RepoCompletedSemaphorePath)Build.complete">
 
     <Exec Command="$(DotnetToolCommand) build-server shutdown" />
 
@@ -419,7 +438,7 @@
 
   <Target Name="DisplayDirSizeBeforeBuild"
           BeforeTargets="Build"
-          Condition=" '$(CleanWhileBuilding)' == 'true' and '$(SkipRepoBuild)' != 'true'">
+          Condition=" '$(CleanWhileBuilding)' == 'true'">
     <Message Text="DirSize Before Building $(RepositoryName)" Importance="High" />
     <Exec Command="df -h $(ProjectDir)" />
   </Target>
@@ -432,14 +451,14 @@
   </Target>
   <Target Name="DisplayDirSizeAfterClean"
           AfterTargets="CleanupRepo"
-          Condition=" '$(CleanWhileBuilding)' == 'true' and '$(SkipRepoBuild)' != 'true'">
+          Condition=" '$(CleanWhileBuilding)' == 'true'">
     <Message Text="DirSize After CleanupRepo $(RepositoryName)" Importance="High" />
     <Exec Command="df -h $(ProjectDir)" />
   </Target>
 
   <Target Name="CleanupRepo" 
           AfterTargets="RemoveBuiltPackagesFromCache"
-          Condition=" '$(CleanWhileBuilding)' == 'true' and '$(SkipRepoBuild)' != 'true'">
+          Condition=" '$(CleanWhileBuilding)' == 'true'">
 
     <!-- Make a copy of the build logs & project.assets.json files -->
     <PropertyGroup>
@@ -520,7 +539,7 @@
 
   <Target Name="EnsurePackagesCreated"
           AfterTargets="CopyPackage"
-          Condition="'$(SkipEnsurePackagesCreated)' != 'true' and '$(SkipRepoBuild)' != 'true'"
+          Condition="'$(SkipEnsurePackagesCreated)' != 'true'"
           Inputs="$(MSBuildProjectFullPath)"
           Outputs="$(RepoCompletedSemaphorePath)EnsurePackagesCreated.complete">
     <ItemGroup>
@@ -701,6 +720,7 @@
   <Target Name="GetProjectDirectory" Outputs="$(ProjectDirectory)" />
   <Target Name="GetOfficialBuildId" Outputs="$(OfficialBuildId)" />
   <Target Name="GetRepositoryReferences" Outputs="@(RepositoryReference)" />
+  <Target Name="GetSkipRepoBuild" Outputs="$(SkipRepoBuild)" />
 
   <Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Build.targets, $(MSBuildThisFileDirectory)..))" />
 </Project>
