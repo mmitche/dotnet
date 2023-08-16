@@ -37,7 +37,7 @@
 
     <ItemGroup>
       <DependentProject Update="@(DependentProjectSkipRepoBuilds -> '%(OriginalItemSpec)')">
-        <Active>%(_DependentProjectSkipRepoBuilds.Identity)</Active>
+        <Active>%(DependentProjectSkipRepoBuilds.Identity)</Active>
       </DependentProject>
     </ItemGroup>
   </Target>
