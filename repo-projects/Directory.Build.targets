@@ -22,7 +22,7 @@
     <ItemGroup>
       <DependentProject Include="@(RepositoryReference -> '%(Identity).proj')">
         <RepositoryName>%(Identity)</RepositoryName>
-        <Active>true</Active>
+        <SkipRepoBuild>false</SkipRepoBuild>
       </DependentProject>
     </ItemGroup>
 
@@ -34,8 +34,6 @@
              Targets="GetSkipRepoBuild">
       <Output TaskParameter="TargetOutputs" ItemName="DependentProjectSkipRepoBuilds" />
     </MSBuild>
-
-    <Message Importance="High" Text="@(DependentProjectSkipRepoBuilds)" />
 
     <ItemGroup>
       <DependentProject Update="%(DependentProjectSkipRepoBuilds.OriginalItemSpec)">
