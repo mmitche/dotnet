@@ -610,17 +610,23 @@
     <PropertyGroup>
       <UseBootstrapArcade Condition="'$(UseBootstrapArcade)' == '' and '@(ActiveArcadeDependency)' == ''">true</UseBootstrapArcade>
     </PropertyGroup>
+
     <ItemGroup>
       <UseSourceBuiltSdkOverride Condition="'$(UseBootstrapArcade)' != 'true'" Include="@(ArcadeSdkOverride)" />
       <UseSourceBuiltSdkOverride Condition="'$(UseBootstrapArcade)' == 'true'" Include="@(ArcadeBootstrapSdkOverride)" />
     </ItemGroup>
 
+    <!-- Now set the source built SDK override variables. In addition, set up the arcade toolset initialization to the built arcade,
+         if a bootstrap arcade is not going to be used. -->
     <ItemGroup>
       <EnvironmentVariables Include="SOURCE_BUILT_SDK_ID_%(UseSourceBuiltSdkOverride.Group)=%(UseSourceBuiltSdkOverride.Identity)" />
       <EnvironmentVariables Include="SOURCE_BUILT_SDK_VERSION_%(UseSourceBuiltSdkOverride.Group)=%(UseSourceBuiltSdkOverride.Version)" />
       <EnvironmentVariables Condition="'%(UseSourceBuiltSdkOverride.Location)' != ''" Include="SOURCE_BUILT_SDK_DIR_%(UseSourceBuiltSdkOverride.Group)=%(UseSourceBuiltSdkOverride.Location)/" />
       <EnvironmentVariables Condition="'%(UseSourceBuiltSdkOverride.Location)' == ''" Include="SOURCE_BUILT_SDK_DIR_%(UseSourceBuiltSdkOverride.Group)=$(SourceBuiltSdksDir)%(UseSourceBuiltSdkOverride.Identity)/" />
+
+      <EnvironmentVariables Include="_InitializeToolset=$(SourceBuiltSdksDir)Microsoft.DotNet.Arcade.Sdk/tools/Build.proj" Condition="'$(UseBootstrapArcade)' != 'true'" />
     </ItemGroup>
+
   </Target>
 
   <Target Name="WritePrebuiltUsageData"
