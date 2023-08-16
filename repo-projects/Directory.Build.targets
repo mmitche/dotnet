@@ -35,7 +35,9 @@
     </MSBuild>
 
     <ItemGroup>
-      <_SkipDependentProject Include="@(_DependentProjectSkipRepoBuilds)" Condition="'%(SkipRepoBuild)' == 'true'" />
+      <_SkipDependentProject Include="@(_DependentProjectSkipRepoBuilds -> '$(OriginalItemSpec)')" Condition="'%(_DependentProjectSkipRepoBuilds.Identity)' == 'true'">
+        <RepositoryName>%(RepositoryName)</RepositoryName>
+      </_SkipDependentProject>
       <_DependentProject Remove="@(_SkipDependentProject)" />
     </ItemGroup>
 
