@@ -17,6 +17,34 @@
   <UsingTask AssemblyFile="$(XPlatSourceBuildTasksAssembly)" TaskName="ZipFileExtractToDirectory" />
   <UsingTask AssemblyFile="$(XPlatSourceBuildTasksAssembly)" TaskName="ReplaceTextInFile" />
 
+  <!-- Retrieve the repository references, annotated as to whether they are active or not -->
+  <Target Name="GetDependentProjects" Outputs="@(DependentProject)">
+    <ItemGroup>
+      <DependentProject Include="@(RepositoryReference -> '%(Identity).proj')">
+        <RepositoryName>%(Identity)</RepositoryName>
+        <Active>true</Active>
+      </DependentProject>
+    </ItemGroup>
+
+    <!-- To enable partial builds, the graph is filtered to remove repos that are not available.
+         To determine whether a repo should build, invoke the repo project with the ShouldSkip target.
+         The target will determine whether repo should be built. By default, a repo is not built if its
+         sources are not available. -->
+    <MSBuild Projects="@(DependentProject)"
+             Targets="GetSkipRepoBuild">
+      <Output TaskParameter="TargetOutputs" ItemName="DependentProjectSkipRepoBuilds" />
+    </MSBuild>
+
+    <ItemGroup>
+      <_SkipDependentProject Include="@(DependentProjectSkipRepoBuilds -> '%(OriginalItemSpec)')" Condition="'%(_DependentProjectSkipRepoBuilds.Identity)' == 'true'">
+        <RepositoryName>%(RepositoryName)</RepositoryName>
+      </_SkipDependentProject>
+      <DependentProject Update="@(_SkipDependentProject)">
+        <Active>false</Active>
+      </DependentProject>
+    </ItemGroup>
+  </Target>
+  
   <Target Name="BuildRepoReferences"
           DependsOnTargets="GetDependentProjects"
           Condition="'@(DependentProject)' != '' and '$(SkipRepoReferences)' != 'true'">
@@ -701,33 +729,7 @@
 
   <Target Name="GetProjectDirectory" Outputs="$(ProjectDirectory)" />
   <Target Name="GetOfficialBuildId" Outputs="$(OfficialBuildId)" />
-  <!-- Retrieve the repository references, annotated as to whether they are active or not -->
-  <Target Name="GetDependentProjects" Outputs="@(DependentProject)">
-    <ItemGroup>
-      <DependentProject Include="@(RepositoryReference -> '%(Identity).proj')">
-        <RepositoryName>%(Identity)</RepositoryName>
-        <Active>true</Active>
-      </DependentProject>
-    </ItemGroup>
-
-    <!-- To enable partial builds, the graph is filtered to remove repos that are not available.
-         To determine whether a repo should build, invoke the repo project with the ShouldSkip target.
-         The target will determine whether repo should be built. By default, a repo is not built if its
-         sources are not available. -->
-    <MSBuild Projects="@(DependentProject)"
-             Targets="GetSkipRepoBuild">
-      <Output TaskParameter="TargetOutputs" ItemName="DependentProjectSkipRepoBuilds" />
-    </MSBuild>
-
-    <ItemGroup>
-      <_SkipDependentProject Include="@(DependentProjectSkipRepoBuilds -> '%(OriginalItemSpec)')" Condition="'%(_DependentProjectSkipRepoBuilds.Identity)' == 'true'">
-        <RepositoryName>%(RepositoryName)</RepositoryName>
-      </_SkipDependentProject>
-      <DependentProject Update="@(_SkipDependentProject)">
-        <Active>false</Active>
-      </DependentProject>
-    </ItemGroup>
-  </Target>
+  
   <Target Name="GetSkipRepoBuild" Outputs="$(SkipRepoBuild)" />
 
   <Import Project="$([MSBuild]::GetPathOfFileAbove(Directory.Build.targets, $(MSBuildThisFileDirectory)..))" />
