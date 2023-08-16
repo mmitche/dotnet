@@ -45,7 +45,9 @@
           DependsOnTargets="GetActiveDependencyProjects"
           Condition="'$(SkipRepoReferences)' != 'true'">
 
-    <Message Importance="High" Text="Building active dependencies [@(ActiveDependencyProjects -> '%(RepositoryName)')] needed by '$(RepositoryName)'." />
+    <Message Importance="High"
+             Text="Building active dependencies [@(ActiveDependencyProjects -> '%(RepositoryName)')] needed by '$(RepositoryName)'."
+             Condition="'@(ActiveDependencyProjects)' != ''" />
 
     <MSBuild Projects="@(ActiveDependencyProjects)" Targets="Build" BuildInParallel="$(BuildInParallel)" StopOnFirstFailure="true" />
   </Target>
@@ -592,9 +594,27 @@
     </ItemGroup>
   </Target>
 
+  <!-- Depending on the repository and what repos built (e.g. arcade), we may need to set some msbuild SDK overrides.
+       For example, arcade itself will always use the bootstrap Arcade. However, the installer would use the bootstrap arcade
+       if arcade was not built during this source build invocation. This could happen in a 2xx+ branch of the SDK, where
+       arcade comes from the 1xx branch. -->
+
   <Target Name="SetSourceBuiltSdkOverrides"
           BeforeTargets="Build"
-          Condition="'@(UseSourceBuiltSdkOverride)' != ''">
+          DependsOnTargets="GetActiveDependencyProjects">
+
+    <!-- If the repo chose to use the bootstrap arcade, keep it that way. Otherwise, base it on whether arcade was built. -->
+    <ItemGroup>
+      <ActiveArcadeDependency Include="@(ActiveDependencyProjects)" Condition="'%(RepositoryName)' == 'arcade'" />
+    </ItemGroup>
+    <PropertyGroup>
+      <UseBootstrapArcade Condition="'$(UseBootstrapArcade)' == '' and '@(ActiveArcadeDependency)' == ''">true</UseBootstrapArcade>
+    </PropertyGroup>
+    <ItemGroup>
+      <UseSourceBuiltSdkOverride Condition="'$(UseBootstrapArcade)' != 'true'" Include="@(ArcadeSdkOverride)" />
+      <UseSourceBuiltSdkOverride Condition="'$(UseBootstrapArcade)' == 'true'" Include="@(ArcadeBootstrapSdkOverride)" />
+    </ItemGroup>
+
     <ItemGroup>
       <EnvironmentVariables Include="SOURCE_BUILT_SDK_ID_%(UseSourceBuiltSdkOverride.Group)=%(UseSourceBuiltSdkOverride.Identity)" />
       <EnvironmentVariables Include="SOURCE_BUILT_SDK_VERSION_%(UseSourceBuiltSdkOverride.Group)=%(UseSourceBuiltSdkOverride.Version)" />
