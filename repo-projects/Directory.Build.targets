@@ -35,7 +35,7 @@
     </MSBuild>
 
     <ItemGroup>
-      <_SkipDependentProject Include="@(_DependentProject)" Condition="'%(SkipRepoBuild)' == 'true'" />
+      <_SkipDependentProject Include="@(_DependentProjectSkipRepoBuilds)" Condition="'%(SkipRepoBuild)' == 'true'" />
       <_DependentProject Remove="@(_SkipDependentProject)" />
     </ItemGroup>
 
@@ -591,7 +591,7 @@
 
   <Target Name="SetSourceBuiltSdkOverrides"
           BeforeTargets="Build"
-          Condition="'@(UseSourceBuiltSdkOverride)' != '' and '$(SkipRepoBuild)' != 'true'">
+          Condition="'@(UseSourceBuiltSdkOverride)' != ''">
     <ItemGroup>
       <EnvironmentVariables Include="SOURCE_BUILT_SDK_ID_%(UseSourceBuiltSdkOverride.Group)=%(UseSourceBuiltSdkOverride.Identity)" />
       <EnvironmentVariables Include="SOURCE_BUILT_SDK_VERSION_%(UseSourceBuiltSdkOverride.Group)=%(UseSourceBuiltSdkOverride.Version)" />
