@@ -19,8 +19,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ArcadeSdkDir Condition="'$(ArcadeSdkDir)' == ''">$(NuGetPackageRoot)microsoft.dotnet.arcade.sdk\$(ArcadeSdkVersion)\</ArcadeSdkDir>
-    <_BuildReleasePackagesTargets>$(ArcadeSdkDir)tools\BuildReleasePackages.targets</_BuildReleasePackagesTargets>
+    <ArcadeSdkMSBuildProjectDir>$([System.IO.Path]::GetDirectoryName('$(ArcadeSdkBuildTasksAssembly)'))\..\</ArcadeSdkMSBuildProjectDir>
+    <_BuildReleasePackagesTargets>$(ArcadeSdkMSBuildProjectDir)BuildReleasePackages.targets</_BuildReleasePackagesTargets>
   </PropertyGroup>
 
   <Import Project="$(_BuildReleasePackagesTargets)" />
