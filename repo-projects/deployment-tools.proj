@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <RepositoryReference Include="arcade" />
-    <RepositoryReference Include="runtime" />
+    <RepositoryReference Include="xliff-tasks" />
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

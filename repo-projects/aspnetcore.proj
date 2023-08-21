@@ -45,8 +45,10 @@
   <ItemGroup>
     <RepositoryReference Include="arcade" />
     <RepositoryReference Include="source-build-externals" />
+    <RepositoryReference Include="source-build-reference-packages" />
     <RepositoryReference Include="runtime" />
-    <RepositoryReference Include="msbuild" />
+    <RepositoryReference Include="symreader" />
+    <RepositoryReference Include="xdt" />
     <RepositoryReference Include="roslyn" />
     <RepositoryReference Include="roslyn-analyzers" />
   </ItemGroup>
