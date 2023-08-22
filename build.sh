@@ -11,7 +11,8 @@
 ###   --source-version <SHA>       Source Link revision, required when building from tarball
 ###   --release-manifest <FILE>    A JSON file, an alternative source of Source Link metadata
 ###   --use-mono-runtime           Output uses the mono runtime
-###   --with-packages <DIR>        Use the specified directory of previously-built packages
+###   --with-packages <DIR>        Use the specified directory of previously-built nuget packages
+###   --with-artifacts <DIR>       Use the specified directory of previously-built artifacts packages
 ###   --with-sdk <DIR>             Use the SDK in the specified directory for bootstrapping
 ###
 ### Use -- to send the remaining arguments to MSBuild
