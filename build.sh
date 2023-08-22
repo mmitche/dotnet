@@ -11,8 +11,8 @@
 ###   --source-version <SHA>       Source Link revision, required when building from tarball
 ###   --release-manifest <FILE>    A JSON file, an alternative source of Source Link metadata
 ###   --use-mono-runtime           Output uses the mono runtime
-###   --with-packages <DIR>        Use the specified directory of previously-built nuget packages
-###   --with-artifacts <DIR>       Use the specified directory of previously-built artifacts packages
+###   --with-packages <DIR>        Use the specified directory of previously-built nuget packages and artifacts.
+###   --with-artifacts <DIR>       Use the specified directory of previously-built artifacts.
 ###   --with-sdk <DIR>             Use the SDK in the specified directory for bootstrapping
 ###
 ### Use -- to send the remaining arguments to MSBuild
@@ -28,7 +28,7 @@ function print_help () {
 }
 
 MSBUILD_ARGUMENTS=("-flp:v=detailed")
-CUSTOM_PACKAGES_DIR=''
+CUSTOM_ARTIFACTS_DIR=''
 alternateTarget=false
 runningSmokeTests=false
 packagesDir="$SCRIPT_ROOT/prereqs/packages/"
@@ -77,10 +77,10 @@ while :; do
     --use-mono-runtime)
       MSBUILD_ARGUMENTS+=( "/p:SourceBuildUseMonoRuntime=true" )
       ;;
-    --with-packages)
-      CUSTOM_PACKAGES_DIR="$(cd -P "$2" && pwd)"
-      if [ ! -d "$CUSTOM_PACKAGES_DIR" ]; then
-          echo "Custom prviously built packages directory '$CUSTOM_PACKAGES_DIR' does not exist"
+    --with-packages|--with-artifacts)
+      CUSTOM_ARTIFACTS_DIR="$(cd -P "$2" && pwd)"
+      if [ ! -d "$CUSTOM_ARTIFACTS_DIR" ]; then
+          echo "Custom previously built packages/artifacts directory '$CUSTOM_ARTIFACTS_DIR' does not exist"
           exit 1
       fi
       shift
@@ -160,11 +160,11 @@ if [ "$alternateTarget" != "true" ]; then
   fi
 fi
 
-if [ "$CUSTOM_PACKAGES_DIR" != "" ]; then
+if [ "$CUSTOM_ARTIFACTS_DIR" != "" ]; then
   if [ "$runningSmokeTests" == "true" ]; then
-    MSBUILD_ARGUMENTS+=( "-p:CustomSourceBuiltPackagesPath=$CUSTOM_PACKAGES_DIR" )
+    MSBUILD_ARGUMENTS+=( "-p:CustomSourceBuiltPackagesPath=$CUSTOM_ARTIFACTS_DIR" )
   else
-    MSBUILD_ARGUMENTS+=( "-p:CustomPrebuiltSourceBuiltPackagesPath=$CUSTOM_PACKAGES_DIR" )
+    MSBUILD_ARGUMENTS+=( "-p:CustomPrebuiltSourceBuiltPackagesPath=$CUSTOM_ARTIFACTS_DIR" )
   fi
 fi
 
@@ -174,8 +174,8 @@ if [ -f "${packagesArchiveDir}archiveArtifacts.txt" ]; then
     echo "ERROR: SDK not found at '$SCRIPT_ROOT/.dotnet'. Either run prep.sh to acquire one or specify one via the --with-sdk parameter."
     ARCHIVE_ERROR=1
   fi
-  if [ ! -f ${packagesArchiveDir}Private.SourceBuilt.Artifacts*.tar.gz ] && [ "$CUSTOM_PACKAGES_DIR" == "" ]; then
-    echo "ERROR: Private.SourceBuilt.Artifacts artifact not found at '$packagesArchiveDir'. Either run prep.sh to acquire it or specify one via the --with-packages parameter."
+  if [ ! -f ${packagesArchiveDir}Private.SourceBuilt.Artifacts*.tar.gz ] && [ "$CUSTOM_ARTIFACTS_DIR" == "" ]; then
+    echo "ERROR: Private.SourceBuilt.Artifacts artifact not found at '$packagesArchiveDir'. Either run prep.sh to acquire it or specify one via the --with-packages|--with-artifacts parameter."
     ARCHIVE_ERROR=1
   fi
   if [ $ARCHIVE_ERROR == 1 ]; then
@@ -215,8 +215,8 @@ fi
 
 packageVersionsPath=''
 
-if [[ "$CUSTOM_PACKAGES_DIR" != "" && -f "$CUSTOM_PACKAGES_DIR/PackageVersions.props" ]]; then
-  packageVersionsPath="$CUSTOM_PACKAGES_DIR/PackageVersions.props"
+if [[ "$CUSTOM_ARTIFACTS_DIR" != "" && -f "$CUSTOM_ARTIFACTS_DIR/PackageVersions.props" ]]; then
+  packageVersionsPath="$CUSTOM_ARTIFACTS_DIR/PackageVersions.props"
 elif [ -d "$packagesArchiveDir" ]; then
   sourceBuiltArchive=$(find "$packagesArchiveDir" -maxdepth 1 -name 'Private.SourceBuilt.Artifacts*.tar.gz')
   if [ -f "${packagesPreviouslySourceBuiltDir}}PackageVersions.props" ]; then
@@ -230,7 +230,7 @@ fi
 if [ ! -f "$packageVersionsPath" ]; then
   echo "Cannot find PackagesVersions.props.  Debugging info:"
   echo "  Attempted archive path: $packagesArchiveDir"
-  echo "  Attempted custom PVP path: $CUSTOM_PACKAGES_DIR/PackageVersions.props"
+  echo "  Attempted custom PVP path: $CUSTOM_ARTIFACTS_DIR/PackageVersions.props"
   exit 1
 fi
 

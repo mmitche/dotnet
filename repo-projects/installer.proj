@@ -36,8 +36,11 @@
     <BuildCommandArgs Condition="'$(TargetOS)' == 'FreeBSD'">$(BuildCommandArgs) /p:PortableBuild=true</BuildCommandArgs>
     <BuildCommandArgs Condition="'$(TargetOS)' != 'Windows_NT'">$(BuildCommandArgs) /p:CoreSetupRid=$(OverrideTargetRid)</BuildCommandArgs>
 
-    <!-- Consume the source-built Core-Setup and toolset. This line must be removed to source-build CLI without source-building Core-Setup first. -->
+    <!-- Set the public base URI for where installer should find the input artifacts required to create the layouts. -->
     <BuildCommandArgs>$(BuildCommandArgs) /p:PublicBaseURL=file:%2F%2F$(SourceBuiltAssetsDir)</BuildCommandArgs>
+    <BuildCommandArgs Condition="'$(CustomPrebuiltSourceBuiltPackagesPath)' != ''">$(BuildCommandArgs) /p:AdditionalBaseUrl=file:%2F%2F$(CustomPrebuiltSourceBuiltPackagesPath)</BuildCommandArgs>
+
+    <!-- Also include the 
 
     <BuildCommandArgs>$(BuildCommandArgs) /p:UsePortableLinuxSharedFramework=false</BuildCommandArgs>
 
