@@ -21,6 +21,9 @@
     <RepositoryReference Include="source-build-reference-packages" />
     <RepositoryReference Include="arcade" />
 
+    <!-- Tests -->
+    <RepositoryReference Include="scenario-tests" />
+
     <!-- Product Repos -->
     <RepositoryReference Include="command-line-api" />
     <RepositoryReference Include="sourcelink" />
@@ -49,6 +52,7 @@
 
     <!-- Package source-build artifacts -->
     <RepositoryReference Include="package-source-build" />
+
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
