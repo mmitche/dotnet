@@ -40,7 +40,7 @@
 
   <!-- Environment Variables -->
   <ItemGroup>
-    <EnvironmentVariables Include="BuildInParallel=false" />
+    <EnvironmentVariables Include="BuildInParallel=true" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,10 +51,12 @@
 
   <!-- Repository References -->
   <ItemGroup>
-      <RepositoryReference Include="arcade" />
+      <RepositoryReference Include="command-line-api" />
       <RepositoryReference Include="cecil" />
-      <RepositoryReference Include="symreader" />
+      <RepositoryReference Include="source-build-reference-packages" />
       <RepositoryReference Include="source-build-externals" />
+      <RepositoryReference Include="arcade" />
+      <RepositoryReference Include="xliff-tasks" />
   </ItemGroup>
 
   <UsingTask AssemblyFile="$(XPlatSourceBuildTasksAssembly)" TaskName="AddRidToRuntimeJson" />

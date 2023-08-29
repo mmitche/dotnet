@@ -9,6 +9,10 @@
     <IsToolingProject>true</IsToolingProject>
   </PropertyGroup>
 
+  <ItemGroup>
+    <RepositoryReference Include="source-build-reference-packages" />
+    <RepositoryReference Include="arcade" />
+  </ItemGroup>
+
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>
-
