@@ -34,6 +34,7 @@ MSBUILD_ARGUMENTS=("--tl:off")
 # https://github.com/dotnet/source-build/issues/3965
 MSBUILD_ARGUMENTS+=("/p:DotNetBuildFromSource=true")
 MSBUILD_ARGUMENTS+=("/p:DotNetBuildVertical=false")
+MSBUILD_ARGUMENTS+=("/p:DotNetBuildOrchestrator=true")
 CUSTOM_PACKAGES_DIR=''
 alternateTarget=false
 runningSmokeTests=false
