@@ -44,7 +44,6 @@ function Build {
     $bl `
     --tl:off `
     /p:Configuration=$configuration `
-    /p:DotNetBuildOrchestrator=true `
     @properties
 }
 
