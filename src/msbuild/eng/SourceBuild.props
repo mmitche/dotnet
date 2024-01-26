@@ -8,11 +8,10 @@
   </PropertyGroup>
 
   <Target Name="ConfigureInnerBuildArgs" BeforeTargets="GetSourceBuildCommandConfiguration">
-    <PropertyGroup>
+    <PropertyGroup Condition="'$(ArcadeBuildFromSource)' == 'true' or '$(DotNetBuildSourceOnly)' == 'true'">
       <InnerBuildArgs>$(InnerBuildArgs) /p:Projects="$(InnerSourceBuildRepoRoot)\MSBuild.SourceBuild.slnf"</InnerBuildArgs>
-      <!-- Disable package validation as source build filters out target frameworks. -->
-      <InnerBuildArgs>$(InnerBuildArgs) /p:EnablePackageValidation=false</InnerBuildArgs>
     </PropertyGroup>
+
   </Target>
 
 </Project>
