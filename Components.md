@@ -8,7 +8,7 @@ To enable full offline source-building of the VMR, we have no other choice than 
 
 <!-- component list beginning -->
 - `src/arcade`  
-*[dotnet/arcade@438a8e2](https://github.com/dotnet/arcade/tree/438a8e2488313fb3aa1b24a741a85c2669ee7e0d)*
+*[dotnet/arcade@2fb543a](https://github.com/dotnet/arcade/tree/2fb543a45580400a559b5ae41c96a815ea14dac5)*
 - `src/aspire`  
 *[dotnet/aspire@87d5246](https://github.com/dotnet/aspire/tree/87d5246ddfc1fb9b07fcdf7b4b42830f67427ab9)*
 - `src/aspnetcore`  
@@ -32,7 +32,7 @@ To enable full offline source-building of the VMR, we have no other choice than 
 - `src/fsharp`  
 *[dotnet/fsharp@7c217c4](https://github.com/dotnet/fsharp/tree/7c217c487c6e2b7d824f3d40666b3cbad412cad4)*
 - `src/installer`  
-*[dotnet/installer@d693228](https://github.com/dotnet/installer/tree/d693228ff8022dbb5a7886d7cd45f09cde57c568)*
+*[dotnet/installer@367b8ee](https://github.com/dotnet/installer/tree/367b8eee64fc6b430544b1c56147bc53f4641543)*
 - `src/msbuild`  
 *[dotnet/msbuild@0d8d09e](https://github.com/dotnet/msbuild/tree/0d8d09e5c582526daeb4af0b52956c3290e424d1)*
 - `src/nuget-client`  
@@ -52,7 +52,7 @@ To enable full offline source-building of the VMR, we have no other choice than 
 - `src/sdk`  
 *[dotnet/sdk@aea4e42](https://github.com/dotnet/sdk/tree/aea4e42aff076545d4709fd6071dda62fe0ae332)*
 - `src/source-build-externals`  
-*[dotnet/source-build-externals@9f553c8](https://github.com/dotnet/source-build-externals/tree/9f553c88e8a6787c560ab3e7adec226311de7e2c)*
+*[dotnet/source-build-externals@949db2f](https://github.com/dotnet/source-build-externals/tree/949db2fd23b687c0d545e954943feada8b361ed6)*
     - `src/source-build-externals/src/abstractions-xunit`  
     *[xunit/abstractions.xunit@b75d54d](https://github.com/xunit/abstractions.xunit/tree/b75d54d73b141709f805c2001b16f3dd4d71539d)*
     - `src/source-build-externals/src/application-insights`  
@@ -82,7 +82,7 @@ To enable full offline source-building of the VMR, we have no other choice than 
     - `src/source-build-externals/src/xunit/tools/media`  
     *[xunit/media@5738b6e](https://github.com/xunit/media/tree/5738b6e86f08e0389c4392b939c20e3eca2d9822)*
 - `src/source-build-reference-packages`  
-*[dotnet/source-build-reference-packages@69b60d2](https://github.com/dotnet/source-build-reference-packages/tree/69b60d2af1775f374c91b3e52da02de6b7de1943)*
+*[dotnet/source-build-reference-packages@ffac219](https://github.com/dotnet/source-build-reference-packages/tree/ffac2194c39660f03761ba81bdd6026202942184)*
 - `src/sourcelink`  
 *[dotnet/sourcelink@7b1a779](https://github.com/dotnet/sourcelink/tree/7b1a779fc3533784ee533515f5c4421d6f2baea6)*
 - `src/symreader`  
