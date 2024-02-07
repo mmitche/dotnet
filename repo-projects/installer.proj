@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+
     <!-- We need to extract the non-portable OS name from the non-portable RID and pass that to installer build script -->
     <OSNameOverride>$(TargetOS)</OSNameOverride>
     <OSNameOverride Condition="'$(PortableBuild)' != 'true'">$(TargetRid.Substring(0, $(TargetRid.IndexOf("-"))))</OSNameOverride>
@@ -10,8 +11,6 @@
 
     <!-- Restore and Build actions are already passed in by the root script. -->
     <BuildActions>$(FlagParameterPrefix)pack $(FlagParameterPrefix)publish</BuildActions>
-
-    <BuildArgs>$(BuildArgs) $(FlagParameterPrefix)runtime-id $(TargetRid)</BuildArgs>
 
     <!--
       Setting NETCoreAppMaximumVersion to a high version so that the sdk doesn't complain if we're restoring/publishing for a higher version than the sdk.
@@ -26,17 +25,19 @@
     <BuildArgs Condition="'$(TargetOS)' != 'windows'">$(BuildArgs) /p:AspNetCoreInstallerRid=$(TargetRid)</BuildArgs>
     <!-- installer always wants to build portable on FreeBSD -->
     <BuildArgs Condition="'$(TargetOS)' == 'freebsd' and '$(DotNetBuildSourceOnly)' == 'true'">$(BuildArgs) /p:PortableBuild=true</BuildArgs>
-    <BuildArgs Condition="'$(TargetOS)' != 'windows'">$(BuildArgs) /p:CoreSetupRid=$(TargetRid)</BuildArgs>
+    <BuildArgs Condition="'$(TargetOS)' != 'windows'">$(BuildArgs) /p:NetRuntimeRid=$(TargetRid)</BuildArgs>
 
-    <!-- Consume the source-built Core-Setup and toolset. This line must be removed to source-build CLI without source-building Core-Setup first. -->
+    <!-- Consume the source-built blob assets from runtime, aspnetcore, etc. -->
     <BuildArgs>$(BuildArgs) /p:PublicBaseURL=file:%2F%2F$(SourceBuiltAssetsDir)</BuildArgs>
-
+    <!-- In non-source-only scenarios, currently consume aspnetcore from the normal public base url -->
+    <BuildArgs>$(BuildArgs) /p:AspNetCorePublicBaseURL=https://dotnetbuilds.blob.core.windows.net/public/aspnetcore/Runtime/</BuildArgs>
     <BuildArgs>$(BuildArgs) /p:UsePortableLinuxSharedFramework=false</BuildArgs>
   </PropertyGroup>
 
   <ItemGroup>
     <RepositoryReference Include="arcade" />
     <RepositoryReference Include="aspnetcore" />
+    <RepositoryReference Include="windowsdesktop" />
     <RepositoryReference Include="emsdk" />
     <RepositoryReference Include="fsharp" />
     <RepositoryReference Include="msbuild" />
@@ -60,15 +61,11 @@
 
   <ItemGroup>
     <EnvironmentVariables Include="CLIBUILD_SKIP_TESTS=true" />
+    <EnvironmentVariables Include="PublishWindowsPdb=false" />
+  </ItemGroup>
 
-    <!-- Disable bundled tools until we can figure out:
-      Unable to find package dotnet-dev-certs.
-      Unable to find package dotnet-ef.
-      Unable to find package dotnet-sql-cache.
-      Unable to find package dotnet-user-secrets.
-      Unable to find package dotnet-user-jwts.
-      Unable to find package dotnet-watch.  -->
-    <EnvironmentVariables Include="CLIBUILD_SKIP_BUNDLEDDOTNETTOOLS=true" />
+  <ItemGroup>
+    <SourceBuiltSdkOverride Include="@(ArcadeCMakeSdkOverride)" />
   </ItemGroup>
 
 </Project>

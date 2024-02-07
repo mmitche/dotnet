@@ -17,6 +17,7 @@
 
     <!-- Product Repos -->
     <RepositoryReference Include="command-line-api" />
+    <RepositoryReference Include="sdk" />
     <RepositoryReference Include="sourcelink" />
     <RepositoryReference Include="diagnostics" />
     <RepositoryReference Include="emsdk" />
@@ -38,7 +39,6 @@
     <RepositoryReference Include="test-templates" />
     <RepositoryReference Include="fsharp" />
     <RepositoryReference Include="vstest" />
-    <RepositoryReference Include="sdk" />
     <RepositoryReference Include="aspire" />
     <RepositoryReference Include="installer" />
 

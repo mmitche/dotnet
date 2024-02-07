@@ -40,9 +40,7 @@
     <RepositoryReference Remove="test-templates" />
     <RepositoryReference Remove="fsharp" />
     <RepositoryReference Remove="vstest" />
-    <RepositoryReference Remove="sdk" />
     <RepositoryReference Remove="aspire" />
-    <RepositoryReference Remove="installer" />
   </ItemGroup>
 
   <UsingTask AssemblyFile="$(XPlatSourceBuildTasksAssembly)" TaskName="AddSourceToNuGetConfig" />
