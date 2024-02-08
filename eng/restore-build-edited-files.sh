@@ -76,5 +76,5 @@ fi
 
 # Perform git restore for each path
 for path in "${PathsToRestore[@]}"; do
-    git -C "$(dirname "$(dirname "$scriptroot")")" restore "$path"
+    git -C "$(dirname "$scriptroot")" restore "$path"
 done
