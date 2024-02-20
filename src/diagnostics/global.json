@@ -1,18 +1,6 @@
 {
   "tools": {
-    "dotnet": "9.0.100-alpha.1.23615.4",
-    "runtimes": {
-      "dotnet": [
-        "$(MicrosoftNETCoreApp60Version)",
-        "$(MicrosoftNETCoreApp70Version)",
-        "$(VSRedistCommonNetCoreSharedFrameworkx6480Version)"
-      ],
-      "dotnet/x86": [
-        "$(MicrosoftNETCoreApp60Version)",
-        "$(MicrosoftNETCoreApp70Version)",
-        "$(VSRedistCommonNetCoreSharedFrameworkx6480Version)"
-      ]
-    }
+    "dotnet": "9.0.100-preview.2.24103.2"
   },
   "msbuild-sdks": {
     "Microsoft.Build.NoTargets": "3.5.0",

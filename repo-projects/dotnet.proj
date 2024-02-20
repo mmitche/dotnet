@@ -24,12 +24,12 @@
     <RepositoryReference Include="symreader" />
     <RepositoryReference Include="source-build-externals" Condition="'$(DotNetBuildSourceOnly)' == 'true'" />
     <RepositoryReference Include="runtime" />
+    <RepositoryReference Include="aspnetcore" />
     <RepositoryReference Include="roslyn" />
     <RepositoryReference Include="windowsdesktop" Condition="'$(TargetOS)' == 'windows'" />
     <RepositoryReference Include="xdt" />
     <RepositoryReference Include="msbuild" />
     <RepositoryReference Include="roslyn-analyzers" />
-    <RepositoryReference Include="aspnetcore" />
     <RepositoryReference Include="razor" />
     <RepositoryReference Include="deployment-tools" />
     <RepositoryReference Include="format" />

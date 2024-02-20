@@ -1,17 +1,9 @@
 {
   "sdk": {
-    "version": "9.0.100-preview.2.24112.1"
+    "version": "9.0.100-preview.2.24103.2"
   },
   "tools": {
-    "dotnet": "9.0.100-preview.2.24112.1",
-    "runtimes": {
-      "dotnet/x86": [
-        "$(MicrosoftNETCoreBrowserDebugHostTransportVersion)"
-      ],
-      "dotnet": [
-        "$(MicrosoftNETCoreBrowserDebugHostTransportVersion)"
-      ]
-    },
+    "dotnet": "9.0.100-preview.2.24103.2",
     "Git": "2.22.0",
     "jdk": "11.0.3",
     "vs": {
