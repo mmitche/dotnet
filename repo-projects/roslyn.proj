@@ -24,6 +24,8 @@
     <!-- UsingToolMicrosoftNetCompilers=false introduces a prebuilt so we'll have to turn back on after our bootstrap SDK has native integer support -->
     <!-- issue: https://github.com/dotnet/source-build/issues/1719 -->
     <BuildArgs>$(BuildArgs) /p:UsingToolMicrosoftNetCompilers=false</BuildArgs>
+    <BuildArgs>$(BuildArgs) /p:EnableNgenOptimization=false</BuildArgs>
+    <BuildArgs>$(BuildArgs) /p:_SkipUpgradeNetAnalyzersNuGetWarning=true</BuildArgs>
   </PropertyGroup>
 
   <ItemGroup>
