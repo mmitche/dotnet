@@ -320,7 +320,7 @@ $javac = Get-Command javac -ErrorAction Ignore -CommandType Application
 $localJdkPath = "$PSScriptRoot\..\.tools\jdk\win-x64\"
 if ($ci -and $NativeToolsOnMachine) {
     $foundJdk = $true
-} else if (Test-Path "$localJdkPath\bin\javac.exe") {
+} elseif (Test-Path "$localJdkPath\bin\javac.exe") {
     $foundJdk = $true
     Write-Host -f Magenta "Detected JDK in $localJdkPath (via local repo convention)"
     $env:JAVA_HOME = $localJdkPath
