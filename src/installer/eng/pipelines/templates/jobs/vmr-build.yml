@@ -176,6 +176,7 @@ jobs:
       inputs:
         versionSpec: '11'
         jdkArchitectureOption: ${{ parameters.architecture }}
+        jdkSourceOption: 'PreInstalled'
 
   - ${{ if ne(parameters.reuseBuildArtifactsFrom, '') }}:
     - download: current
