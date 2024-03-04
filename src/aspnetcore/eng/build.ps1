@@ -128,6 +128,7 @@ Online version: https://github.com/dotnet/aspnetcore/blob/main/docs/BuildFromSou
 param(
     [switch]$CI,
     [switch]$PrepareMachine,
+    [switch]$NativeToolsOnMachine,
 
     # Build lifecycle options
     [switch]$Restore,
@@ -317,7 +318,9 @@ $performDotnetBuild = $BuildJava -or $BuildManaged -or $BuildNodeJS -or `
 $foundJdk = $false
 $javac = Get-Command javac -ErrorAction Ignore -CommandType Application
 $localJdkPath = "$PSScriptRoot\..\.tools\jdk\win-x64\"
-if (Test-Path "$localJdkPath\bin\javac.exe") {
+if ($ci -and $NativeToolsOnMachine) {
+    $foundJdk = $true
+} else if (Test-Path "$localJdkPath\bin\javac.exe") {
     $foundJdk = $true
     Write-Host -f Magenta "Detected JDK in $localJdkPath (via local repo convention)"
     $env:JAVA_HOME = $localJdkPath
