@@ -5,7 +5,8 @@
 
   <PropertyGroup>
     <IsShippingPackage>true</IsShippingPackage>
-    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+    <ExcludeFromDotNetBuild>false</ExcludeFromDotNetBuild>
+
     <IsTestProject>true</IsTestProject>
     <IsUnitTestProject>true</IsUnitTestProject>
     <TestDependsOnAspNetPackages>false</TestDependsOnAspNetPackages>
