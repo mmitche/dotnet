@@ -25,7 +25,7 @@
   <!-- Build RepoTasks - this is normally triggered via the build script but the inner ArPow source-build is run via msbuild.
        https://github.com/dotnet/source-build/issues/3807 -->
   <Target Name="BuildRepoTasks"
-          Condition="'$(DotNetBuildInnerRepo)' == 'true'"
+          Condition="'$(DotNetBuildInnerRepo)' == 'true' and '$(DotNetBuildSourceOnly)' == 'true'"
           BeforeTargets="Execute">
     <!-- If the alternative runtime location and key are present, pass those through -->
     <PropertyGroup>
@@ -40,12 +40,6 @@
       <InnerBuildEnv Condition="'$(FullAssemblySigningSupported)' != ''" Include="FullAssemblySigningSupported=$(FullAssemblySigningSupported)" />
       <InnerBuildEnv Include="DotNetBuildSourceOnly=$(DotNetBuildSourceOnly)" />
     </ItemGroup>
-
-    <!-- Install the JDK. This probably should be done as part of the base image. -->
-    <Exec
-      Command="pwsh ./eng/scripts/InstallJdk.ps1"
-      WorkingDirectory="$(InnerSourceBuildRepoRoot)"
-      Condition="'$(OS)' == 'Windows_NT'" />
 
     <!-- Call the build.sh script to build the repo tasks. Set IgnoreStandardErrorWarningFormat
          to true. This avoids fatal errors, because in internal builds there are usually a few failed installation

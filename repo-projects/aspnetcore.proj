@@ -5,13 +5,13 @@
     <BuildScript>$(ProjectDirectory)eng\build$(ShellExtension)</BuildScript>
 
     <!-- BuildActions includes -publish which is not supported by the aspnetcore build script. -->
-    <BuildActions>$(FlagParameterPrefix)restore $(FlagParameterPrefix)build $(FlagParameterPrefix)pack</BuildActions>
-    <!-- On Windows, build all for the VB PoC -->
-    <BuildActions Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(BuildOS)' == 'windows'">$(FlagParameterPrefix)restore $(FlagParameterPrefix)all $(FlagParameterPrefix)pack</BuildActions>
+    <BuildActions>$(FlagParameterPrefix)restore $(FlagParameterPrefix)all $(FlagParameterPrefix)pack</BuildActions>
 
     <BuildArgs>$(BuildArgs) $(FlagParameterPrefix)arch $(TargetArchitecture)</BuildArgs>
-    <BuildArgs Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(BuildOS)' == 'windows'">$(BuildArgs) $(FlagParameterPrefix)NativeToolsOnMachine</BuildArgs>
-    <BuildArgs Condition="'$(DotNetBuildSourceOnly)' == 'true' or '$(BuildOS)' != 'windows'">$(BuildArgs) $(FlagParameterPrefix)no-build-repo-tasks</BuildArgs>
+    <!-- Used to obtain java and other native tools. -->
+    <BuildArgs Condition="'$(BuildOS)' == 'windows'">$(BuildArgs) $(FlagParameterPrefix)NativeToolsOnMachine</BuildArgs>
+    <!-- Do not build java except on Windows. It's not needed for downstream use. -->
+    <BuildArgs Condition="'$(DotNetBuildSourceOnly)' == 'true' or '$(BuildOS)' != 'windows'">$(BuildArgs) $(FlagParameterPrefix)no-build-java</BuildArgs>
 
     <LogVerbosityOptOut>true</LogVerbosityOptOut>
     <!-- Aspnetcore chooses its own msbuild engines based on a preference for using dotnet first, 
@@ -22,6 +22,7 @@
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
     <BuildArgs>$(BuildArgs) /p:PortableBuild=$(PortableBuild)</BuildArgs>
     <BuildArgs>$(BuildArgs) /p:TargetRuntimeIdentifier=$(TargetRid)</BuildArgs>
+    <BuildArgs>$(BuildArgs) $(FlagParameterPrefix)no-build-repo-tasks</BuildArgs>
   </PropertyGroup>
 
   <ItemGroup>
