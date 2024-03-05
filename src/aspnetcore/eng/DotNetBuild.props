@@ -94,7 +94,7 @@
   </Target>
 
   <Target Name="RestoreNpmPackages"
-          Condition="'$(BuildNodeJS)' == 'true'"
+          Condition="'$(BuildNodeJS)' == 'true' and '$(DotNetBuildSourceOnly)' == 'true'"
           BeforeTargets="RunInnerSourceBuildCommand">
 
     <Message Text="Checking node version..." Importance="high" />
@@ -120,7 +120,7 @@
   </Target>
 
   <Target Name="BuildNpmFiles"
-          Condition="'$(BuildNodeJS)' == 'true'"
+          Condition="'$(BuildNodeJS)' == 'true' and '$(DotNetBuildSourceOnly)' == 'true'"
           DependsOnTargets="RestoreNpmPackages"
           BeforeTargets="RunInnerSourceBuildCommand">
 

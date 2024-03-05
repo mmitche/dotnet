@@ -14,6 +14,9 @@
     <BuildArgs Condition="'$(DotNetBuildSourceOnly)' == 'true' or '$(BuildOS)' != 'windows'">$(BuildArgs) $(FlagParameterPrefix)no-build-repo-tasks</BuildArgs>
 
     <LogVerbosityOptOut>true</LogVerbosityOptOut>
+    <!-- Aspnetcore chooses its own msbuild engines based on a preference for using dotnet first, 
+         then desktop for native code. It does not have an option to force dotnet msbuild. -->
+    <BuildWithDesktopMSBuild>true</BuildWithDesktopMSBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
