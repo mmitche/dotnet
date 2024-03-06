@@ -437,6 +437,13 @@ try {
         $global:VerbosePreference = 'Continue'
     }
 
+    if ($NativeToolsOnMachine) {
+        $env:NativeToolsOnMachine = $true
+    }
+    if ($restore) {
+        InitializeNativeTools
+    }
+
     if (-not $NoBuildRepoTasks) {
         Write-Host
 
