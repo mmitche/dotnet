@@ -418,6 +418,10 @@ if ($BinaryLog) {
     New-Item (Join-Path $LogDir "empty.log") -ItemType File -ErrorAction SilentlyContinue >$null
 }
 
+if ($NativeToolsOnMachine) {
+    $env:NativeToolsOnMachine = $true
+}
+
 # Capture MSBuild crash logs
 $env:MSBUILDDEBUGPATH = $LogDir
 
@@ -440,10 +444,6 @@ try {
 
     if ($ci) {
         $global:VerbosePreference = 'Continue'
-    }
-
-    if ($NativeToolsOnMachine) {
-        $env:NativeToolsOnMachine = $true
     }
 
     if (-not $NoBuildRepoTasks) {
