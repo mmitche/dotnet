@@ -431,6 +431,11 @@ try {
 
     $toolsetBuildProj = InitializeToolset
 
+    if ($restore) {
+        Write-Host "Initializing native tools"
+        InitializeNativeTools
+    }
+
     $restore = $tmpRestore
 
     if ($ci) {
@@ -439,9 +444,6 @@ try {
 
     if ($NativeToolsOnMachine) {
         $env:NativeToolsOnMachine = $true
-    }
-    if ($restore) {
-        InitializeNativeTools
     }
 
     if (-not $NoBuildRepoTasks) {
