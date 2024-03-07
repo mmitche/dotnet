@@ -165,14 +165,6 @@ jobs:
       env:
         Token: $(dn-bot-dnceng-artifact-feeds-rw)
 
-  - ${{ if ne(parameters.buildSourceOnly, 'true') }}:
-    # Install prerequisites. This probably should just be installed ambiently in the enivornment. Required
-    # today for aspnetcore.
-    - task: NodeTool@0
-      displayName: Install Node 20.x
-      inputs:
-        versionSpec: 20.x
-
   - ${{ if ne(parameters.reuseBuildArtifactsFrom, '') }}:
     - download: current
       artifact: ${{ parameters.reuseBuildArtifactsFrom }}_${{ parameters.architecture }}_Artifacts
