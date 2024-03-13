@@ -56,7 +56,7 @@ internal class CohostProjectSnapshot : IProjectSnapshot
 
         _importsToRelatedDocumentsLazy = new Lazy<ImmutableDictionary<string, ImmutableArray<string>>>(() =>
         {
-            var importsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizer.Comparer);
+            var importsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathNormalizingComparer.Instance);
             foreach (var document in DocumentFilePaths)
             {
                 var importTargetPaths = ProjectState.GetImportDocumentTargetPaths(document, FileKinds.GetFileKindFromFilePath(document), _lazyProjectEngine.Value);
@@ -164,6 +164,6 @@ internal class CohostProjectSnapshot : IProjectSnapshot
             razorLanguageVersion = RazorLanguageVersion.Latest;
         }
 
-        return RazorConfiguration.Create(razorLanguageVersion, configurationName, Enumerable.Empty<RazorExtension>(), useConsolidatedMvcViews: true);
+        return new(razorLanguageVersion, configurationName, Extensions: [], UseConsolidatedMvcViews: true);
     }
 }

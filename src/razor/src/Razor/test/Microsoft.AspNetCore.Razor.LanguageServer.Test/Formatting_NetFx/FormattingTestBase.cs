@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
@@ -19,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Protocol;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -67,7 +66,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             InsertSpaces = insertSpaces,
         };
 
-        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, dispatcher, codeDocument, documentSnapshot, razorLSPOptions);
         var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
@@ -112,7 +111,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             filePathService, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
-        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(
             LoggerFactory, dispatcher, codeDocument, documentSnapshot, razorLSPOptions);
@@ -182,7 +181,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
             throw new InvalidOperationException("Could not map from Razor document to generated document");
         }
 
-        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+        using var dispatcher = new LSPProjectSnapshotManagerDispatcher(ErrorReporter);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, dispatcher, codeDocument);
         var options = new FormattingOptions()

@@ -4303,33 +4303,7 @@ void CodeGen::genTableBasedSwitch(GenTree* treeNode)
 // emits the table and an instruction to get the address of the first element
 void CodeGen::genJumpTable(GenTree* treeNode)
 {
-    noway_assert(compiler->compCurBB->KindIs(BBJ_SWITCH));
-    assert(treeNode->OperGet() == GT_JMPTABLE);
-
-    unsigned   jumpCount = compiler->compCurBB->GetSwitchTargets()->bbsCount;
-    FlowEdge** jumpTable = compiler->compCurBB->GetSwitchTargets()->bbsDstTab;
-    unsigned   jmpTabOffs;
-    unsigned   jmpTabBase;
-
-    jmpTabBase = GetEmitter()->emitBBTableDataGenBeg(jumpCount, true);
-
-    jmpTabOffs = 0;
-
-    JITDUMP("\n      J_M%03u_DS%02u LABEL   DWORD\n", compiler->compMethodID, jmpTabBase);
-
-    for (unsigned i = 0; i < jumpCount; i++)
-    {
-        BasicBlock* target = (*jumpTable)->getDestinationBlock();
-        jumpTable++;
-        noway_assert(target->HasFlag(BBF_HAS_LABEL));
-
-        JITDUMP("            DD      L_M%03u_" FMT_BB "\n", compiler->compMethodID, target->bbNum);
-
-        GetEmitter()->emitDataGenData(i, target);
-    };
-
-    GetEmitter()->emitDataGenEnd();
-
+    unsigned jmpTabBase = genEmitJumpTable(treeNode, true);
     // Access to inline data is 'abstracted' by a special type of static member
     // (produced by eeFindJitDataOffs) which the emitter recognizes as being a reference
     // to constant data, not a real static field.
@@ -6039,17 +6013,6 @@ void CodeGen::genCall(GenTreeCall* call)
 
         instGen(INS_vzeroupper);
     }
-
-#ifdef SWIFT_SUPPORT
-    // Clear the Swift error register before calling a Swift method,
-    // so we can check if it set the error register after returning.
-    // (Flag is only set if we know we need to check the error register)
-    if ((call->gtCallMoreFlags & GTF_CALL_M_SWIFT_ERROR_HANDLING) != 0)
-    {
-        assert(call->unmgdCallConv == CorInfoCallConvExtension::Swift);
-        instGen_Set_Reg_To_Zero(EA_PTRSIZE, REG_SWIFT_ERROR);
-    }
-#endif // SWIFT_SUPPORT
 
     genCallInstruction(call X86_ARG(stackArgBytes));
 

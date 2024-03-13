@@ -44,7 +44,7 @@ internal class RazorProjectService(
 
     public void AddDocument(string filePath)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
@@ -101,7 +101,7 @@ internal class RazorProjectService(
 
     public void OpenDocument(string filePath, SourceText sourceText, int version)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
 
@@ -130,7 +130,7 @@ internal class RazorProjectService(
 
     public void CloseDocument(string filePath)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
         {
@@ -142,7 +142,7 @@ internal class RazorProjectService(
 
     public void RemoveDocument(string filePath)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
         {
@@ -180,7 +180,7 @@ internal class RazorProjectService(
 
     public void UpdateDocument(string filePath, SourceText sourceText, int version)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         ActOnDocumentInMultipleProjects(filePath, (project, textDocumentPath) =>
         {
@@ -211,7 +211,7 @@ internal class RazorProjectService(
 
     public ProjectKey AddProject(string filePath, string intermediateOutputPath, RazorConfiguration? configuration, string? rootNamespace, string displayName)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
         var hostProject = new HostProject(normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace, displayName);
@@ -233,7 +233,7 @@ internal class RazorProjectService(
         ProjectWorkspaceState projectWorkspaceState,
         ImmutableArray<DocumentSnapshotHandle> documents)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         if (!_projectSnapshotManagerAccessor.Instance.TryGetLoadedProject(projectKey, out var project))
         {
@@ -404,37 +404,9 @@ internal class RazorProjectService(
         return normalizedFilePath;
     }
 
-    // Internal for testing
-    internal void TryMigrateDocumentsFromRemovedProject(IProjectSnapshot project)
+    private void TryMigrateMiscellaneousDocumentsToProject()
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
-        var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
-
-        foreach (var documentFilePath in project.DocumentFilePaths)
-        {
-            if (project.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
-            {
-                continue;
-            }
-
-            var toProject = _snapshotResolver.FindPotentialProjects(documentFilePath).FirstOrDefault()
-                ?? miscellaneousProject;
-
-            var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
-            var defaultToProject = toProject;
-            var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
-
-            _logger.LogInformation("Migrating '{documentFilePath}' from the '{project.Key}' project to '{toProject.KEy}' project.",
-                documentFilePath, project.Key, toProject.Key);
-            _projectSnapshotManagerAccessor.Instance.DocumentAdded(defaultToProject.Key, newHostDocument, textLoader);
-        }
-    }
-
-    // Internal for testing
-    internal void TryMigrateMiscellaneousDocumentsToProject()
-    {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher.AssertRunningOnDispatcher();
 
         var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
 

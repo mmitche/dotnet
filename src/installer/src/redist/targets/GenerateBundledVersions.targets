@@ -266,6 +266,10 @@
         Condition="'$(BundleRuntimePacks)' == 'true'"
         Include="$(ProductMonikerRid)" />
 
+      <ILCompilerSupportedRids
+        Condition="'$(BundleNativeAotCompiler)' == 'true'"
+        Include="$(ProductMonikerRid)" />
+
       <Net60MonoRuntimePackRids Include="
           @(Net60RuntimePackRids);
           browser-wasm;
@@ -403,6 +407,7 @@
           linux-x64;
           linux-arm;
           linux-arm64;
+          linux-bionic-arm;
           linux-musl-x64;
           linux-musl-arm;
           linux-musl-arm64;

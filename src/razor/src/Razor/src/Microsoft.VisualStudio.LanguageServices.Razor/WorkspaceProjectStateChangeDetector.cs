@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
@@ -112,10 +111,10 @@ internal class WorkspaceProjectStateChangeDetector(
             {
                 case WorkspaceChangeKind.ProjectAdded:
                     await _dispatcher
-                        .RunOnDispatcherThreadAsync(
-                            static (arg, _) =>
+                        .RunAsync(
+                            static state =>
                             {
-                                var (@this, eventArgs) = arg;
+                                var (@this, eventArgs) = state;
                                 var projectId = eventArgs.ProjectId.AssumeNotNull();
                                 var newSolution = eventArgs.NewSolution;
 
@@ -130,10 +129,10 @@ internal class WorkspaceProjectStateChangeDetector(
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.ProjectReloaded:
                     await _dispatcher
-                        .RunOnDispatcherThreadAsync(
-                            static (arg, _) =>
+                        .RunAsync(
+                            static state =>
                             {
-                                var (@this, eventArgs) = arg;
+                                var (@this, eventArgs) = state;
                                 var projectId = eventArgs.ProjectId.AssumeNotNull();
                                 var newSolution = eventArgs.NewSolution;
 
@@ -147,10 +146,10 @@ internal class WorkspaceProjectStateChangeDetector(
 
                 case WorkspaceChangeKind.ProjectRemoved:
                     await _dispatcher
-                        .RunOnDispatcherThreadAsync(
-                            static (arg, _) =>
+                        .RunAsync(
+                            static state =>
                             {
-                                var (@this, eventArgs) = arg;
+                                var (@this, eventArgs) = state;
                                 var projectId = eventArgs.ProjectId.AssumeNotNull();
                                 var oldSolution = eventArgs.OldSolution;
 
@@ -167,10 +166,10 @@ internal class WorkspaceProjectStateChangeDetector(
 
                 case WorkspaceChangeKind.DocumentAdded:
                     await _dispatcher
-                        .RunOnDispatcherThreadAsync(
-                            static (arg, _) =>
+                        .RunAsync(
+                            static state =>
                             {
-                                var (@this, eventArgs) = arg;
+                                var (@this, eventArgs) = state;
                                 var projectId = eventArgs.ProjectId.AssumeNotNull();
                                 var documentId = eventArgs.DocumentId.AssumeNotNull();
                                 var newSolution = eventArgs.NewSolution;
@@ -206,10 +205,10 @@ internal class WorkspaceProjectStateChangeDetector(
 
                 case WorkspaceChangeKind.DocumentRemoved:
                     await _dispatcher
-                        .RunOnDispatcherThreadAsync(
-                            static (arg, _) =>
+                        .RunAsync(
+                            static state =>
                             {
-                                var (@this, eventArgs) = arg;
+                                var (@this, eventArgs) = state;
                                 var projectId = eventArgs.ProjectId.AssumeNotNull();
                                 var documentId = eventArgs.DocumentId.AssumeNotNull();
                                 var oldSolution = eventArgs.OldSolution;
@@ -245,10 +244,10 @@ internal class WorkspaceProjectStateChangeDetector(
                 case WorkspaceChangeKind.DocumentChanged:
                 case WorkspaceChangeKind.DocumentReloaded:
                     await _dispatcher
-                        .RunOnDispatcherThreadAsync(
-                            static (arg, _) =>
+                        .RunAsync(
+                            static state =>
                             {
-                                var (@this, eventArgs) = arg;
+                                var (@this, eventArgs) = state;
                                 var projectId = eventArgs.ProjectId.AssumeNotNull();
                                 var documentId = eventArgs.DocumentId.AssumeNotNull();
                                 var oldSolution = eventArgs.OldSolution;
@@ -291,10 +290,10 @@ internal class WorkspaceProjectStateChangeDetector(
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.SolutionRemoved:
                     await _dispatcher
-                        .RunOnDispatcherThreadAsync(
-                            static (arg, _) =>
+                        .RunAsync(
+                            static state =>
                             {
-                                var (@this, eventArgs) = arg;
+                                var (@this, eventArgs) = state;
                                 var oldSolution = eventArgs.OldSolution;
                                 var newSolution = eventArgs.NewSolution;
 
@@ -535,13 +534,13 @@ internal class WorkspaceProjectStateChangeDetector(
 
         public override ValueTask ProcessAsync(CancellationToken cancellationToken)
         {
-            var task = _dispatcher.RunOnDispatcherThreadAsync(
-                static (arg, ct) =>
+            var task = _dispatcher.RunAsync(
+                static state =>
                 {
-                    var @this = arg;
-                    @this._workspaceStateGenerator.Update(@this._workspaceProject, @this._projectSnapshot, ct);
+                    var (@this, cancellationToken) = state;
+                    @this._workspaceStateGenerator.Update(@this._workspaceProject, @this._projectSnapshot, cancellationToken);
                 },
-                arg: this,
+                state: (this, cancellationToken),
                 cancellationToken);
 
             return new ValueTask(task);
