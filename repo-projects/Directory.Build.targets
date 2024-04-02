@@ -65,7 +65,6 @@
     <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
       <TransitiveRepositoryReference Remove="roslyn" />
       <TransitiveRepositoryReference Remove="aspnetcore" />
-      <TransitiveRepositoryReference Remove="nuget-client" />
       <TransitiveRepositoryReference Remove="fsharp" />
     </ItemGroup>
   </Target>
