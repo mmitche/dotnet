@@ -5,9 +5,6 @@ git config --global protocol.file.allow always
 
 source="${BASH_SOURCE[0]}"
 scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
-configuration='Release'
-source_build=false
-properties=''
 
 # resolve $SOURCE until the file is no longer a symlink
 while [[ -h $source ]]; do
@@ -19,18 +16,12 @@ while [[ -h $source ]]; do
   [[ $source != /* ]] && source="$scriptroot/$source"
 done
 
-repo_root=`cd -P "$scriptroot/../.." && pwd`
-repo_root="${repo_root}/"
 
 while [[ $# > 0 ]]; do
     lowerI="$(echo $1 | awk '{print tolower($0)}')"
     case $lowerI in
         --configuration|-c)
             configuration=$2
-            shift
-            ;;
-        --source-build|-sb)
-            source_build=true
             shift
             ;;
         -*)
@@ -60,35 +51,41 @@ function ReadGlobalVersion {
   fi
 }
 
+function GetNuGetPackageCachePath {
+  if [[ -z ${NUGET_PACKAGES:-} ]]; then
+    if [[ "$use_global_nuget_cache" == true ]]; then
+      export NUGET_PACKAGES="$HOME/.nuget/packages"
+    else
+      export NUGET_PACKAGES="$repo_root/.packages"
+      export RESTORENOCACHE=true
+    fi
+  fi
+}
+
 if [[ "$DOTNET" == "" && "$DOTNET_PATH" != "" ]]; then
   export DOTNET="$DOTNET_PATH/dotnet"
 else
   ReadGlobalVersion dotnet
   export SDK_VERSION=$_ReadGlobalVersion
 
-  mkdir -p "${repo_root}cli"
-  curl -o "${repo_root}cli/dotnet-install.sh" -L https://dot.net/v1/dotnet-install.sh
+  mkdir -p "$scriptroot/../../cli"
+  curl -o "$scriptroot/../../cli/dotnet-install.sh" -L https://dot.net/v1/dotnet-install.sh
 
   if (( $? )); then
     echo "Could not download 'dotnet-install.sh' script. Please check your network and try again!"
     exit 1
   fi
-  chmod +x "${repo_root}cli/dotnet-install.sh"
+  chmod +x "$scriptroot/../../cli/dotnet-install.sh"
 
-  "${repo_root}cli/dotnet-install.sh" -v $SDK_VERSION -i "${repo_root}cli"
-  export DOTNET=${repo_root}cli/dotnet
+  "$scriptroot/../../cli/dotnet-install.sh" -v $SDK_VERSION -i "$scriptroot/../../cli"
+  export DOTNET=${DOTNET:-$scriptroot/../../cli/dotnet}
 fi
 
 ReadGlobalVersion Microsoft.DotNet.Arcade.Sdk
 export ARCADE_VERSION=$_ReadGlobalVersion
-export NUGET_PACKAGES=${repo_root}artifacts/sb/package-cache/
 
-if [[ "$source_build" == true ]]; then
-  properties="$properties /p:DotNetBuildSourceOnly=true"
+if [ -z "$DotNetBuildFromSourceFlavor" ] || [ "$DotNetBuildFromSourceFlavor" != "Product" ]; then
+  export NUGET_PACKAGES=$scriptroot/../../artifacts/sb/package-cache/
 fi
 
-properties="$properties /p:Configuration=$configuration"
-properties="$properties /p:DotNetBuildRepo=true"
-properties="$properties /p:RepoRoot=$repo_root"
-
-"$DOTNET" msbuild "$scriptroot/source-build.proj" "/bl:${repo_root}artifacts/sb/log/source-inner-build.binlog" $properties $args
+"$DOTNET" msbuild "$scriptroot/source-build.proj" /p:Configuration=$configuration /p:DotNetBuildFromSource=true /p:ArcadeBuildFromSource=true "/p:RepoRoot=$scriptroot/../../" "/bl:$scriptroot/../../artifacts/sb/log/source-build.binlog" $args
