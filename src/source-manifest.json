@@ -75,8 +75,8 @@
     {
       "packageVersion": "6.11.0-preview.1.22",
       "path": "nuget-client",
-      "remoteUri": "https://github.com/nuget/nuget.client",
-      "commitSha": "95b79314dfece146ddcbac902111d9ff946cf514"
+      "remoteUri": "https://github.com/NuGet/NuGet.Client",
+      "commitSha": "20326261155b0e4ec7ba7446ba36ee372cad95b5"
     },
     {
       "packageVersion": "7.0.0-preview.24210.1",
