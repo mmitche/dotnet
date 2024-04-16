@@ -7,7 +7,7 @@
     <!-- Don't pass any build actions because the repo doesn't support them. -->
     <BuildActions></BuildActions>
     <!-- Call into a custom build script as nuget-client doesn't use Arcade infra. -->
-    <BuildScript>$([MSBuild]::NormalizePath('$(ProjectDirectory)', 'eng', 'source-build', 'build$(ShellExtension)'))</BuildScript>
+    <BuildScript>$([MSBuild]::NormalizePath('$(ProjectDirectory)', 'eng', 'dotnet-build', 'build$(ShellExtension)'))</BuildScript>
     
     <BuildArgs>$(BuildArgs) /p:GenerateResourceUsePreserializedResources=true</BuildArgs>
     <ForceDotNetMSBuildEngine>false</ForceDotNetMSBuildEngine>
