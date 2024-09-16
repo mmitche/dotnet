@@ -67,12 +67,20 @@
     <BuildActions>$(BuildActions) $(FlagParameterPrefix)build</BuildActions>
     <BuildActions>$(BuildActions) $(FlagParameterPrefix)pack</BuildActions>
     <BuildActions>$(BuildActions) $(FlagParameterPrefix)publish</BuildActions>
+    <!-- Only enable:
+         - Post arcade right now due to a bootstrapping issue (Tools.proj _ImportOrUseTooling). Blocked on .NET 9 property usage in repos
+         - When not using dev/ci versioning. If official build ids are set, sign assumes that this is not a dry run. It will verify signing
+           and fail all over the place.
+    -->
+    <BuildActions Condition="'$(ContinuousIntegrationBuild)' == 'true' and '$(UseOfficialBuildVersioning)' == 'false' and '$(RepositoryName)' != 'arcade'">$(BuildActions) $(FlagParameterPrefix)sign</BuildActions>
 
     <!-- TODO: Remove the DotNetBuildSourceOnly condition when the default build behavior changes to dev -->
     <BuildArgs Condition="'$(ContinuousIntegrationBuild)' == 'true' or '$(DotNetBuildSourceOnly)' == 'true'">$(FlagParameterPrefix)ci</BuildArgs>
     <BuildArgs>$(BuildArgs) $(FlagParameterPrefix)configuration $(Configuration)</BuildArgs>
     <BuildArgs>$(BuildArgs) -bl</BuildArgs>
     <BuildArgs>$(BuildArgs) /p:DotNetBuildRepo=true</BuildArgs>
+    <!-- -->
+    <BuildArgs>$(BuildArgs) /p:ForceSigningDryRun=true</BuildArgs>
     <!-- Indicate that the build is being run from the orchestrator -->
     <BuildArgs>$(BuildArgs) /p:DotNetBuildOrchestrator=true</BuildArgs>
     <BuildArgs Condition="'$(CrossBuild)' == 'true'">$(BuildArgs) /p:CrossBuild=true</BuildArgs>
