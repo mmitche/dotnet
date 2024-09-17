@@ -13,7 +13,7 @@
     <RunEachTargetSeparately Condition="'$(BuildInParallel)' == 'true' and '$(ContinuousIntegrationBuild)' != 'true'">true</RunEachTargetSeparately>
   </PropertyGroup>
 
-  <Import Project="$(GitInfoRepoPropsFile)" Condition="Exists('$(GitInfoRepoPropsFile)')" />
+  <Import Project="$(GitInfoRepoPropsFile)" Condition="Exists('$(GitInfoRepoPropsFile)') and '$(UseOfficialBuildVersioning) != 'false'" />
 
   <PropertyGroup>
     <!-- Fake, to satisfy the SDK. -->
@@ -84,6 +84,7 @@
     <!-- Pass locations for assets -->
     <BuildArgs>$(BuildArgs) /p:SourceBuiltAssetsDir=$(ArtifactsAssetsDir)</BuildArgs>
     <BuildArgs>$(BuildArgs) /p:SourceBuiltAssetManifestsDir=$(RepoAssetManifestsDir)</BuildArgs>
+    <BuildArgs Condition="'$(OfficialBuildId)' != ''">$(BuildArgs) /p:OfficialBuildId=$(OfficialBuildId)</BuildArgs>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
