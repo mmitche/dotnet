@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>$(NetCurrent)</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
-    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForTests)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <ItemGroup>

@@ -16,9 +16,6 @@ parameters:
 - name: permissions
   type: string
   default: 'rl'
-- name: is1ESPipeline
-  type: boolean
-  default: false
 
 steps:
 - task: AzureCLI@2
