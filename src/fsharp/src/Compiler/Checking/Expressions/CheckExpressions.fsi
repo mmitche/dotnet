@@ -345,12 +345,6 @@ type PostSpecialValsRecursiveBinding =
     { ValScheme: ValScheme
       Binding: Binding }
 
-[<RequireQualifiedAccess>]
-type TcCanFail =
-    | IgnoreMemberResoutionError
-    | IgnoreAllErrors
-    | ReportAllErrors
-
 /// Represents a recursive binding after it has been both checked and generalized, but
 /// before initialization recursion has been rewritten
 type PreInitializationGraphEliminationBinding =
@@ -604,7 +598,7 @@ val TcAttributesCanFail:
 
 /// Check a set of attributes which can only target specific elements
 val TcAttributesWithPossibleTargets:
-    canFail: TcCanFail ->
+    canFail: bool ->
     cenv: TcFileState ->
     env: TcEnv ->
     attrTgt: AttributeTargets ->

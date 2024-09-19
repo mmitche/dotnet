@@ -1055,6 +1055,8 @@ type internal TcGlobals =
 
     member reference_equality_inner_vref: FSharp.Compiler.TypedTree.ValRef
 
+    member renderNullnessAnnotations: bool
+
     member reraise_info: IntrinsicValRef
 
     member reraise_vref: FSharp.Compiler.TypedTree.ValRef
