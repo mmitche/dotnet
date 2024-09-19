@@ -4,7 +4,7 @@
     <TargetFramework>$(ToolsetTargetFramework)</TargetFramework>
     <OutputType>Exe</OutputType>
     <CanRunTestAsTool>false</CanRunTestAsTool>
-    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
 
   <ItemGroup>
