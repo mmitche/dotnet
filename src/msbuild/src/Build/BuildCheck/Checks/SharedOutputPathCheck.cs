@@ -35,8 +35,6 @@ internal sealed class SharedOutputPathCheck : Check
         registrationContext.RegisterEvaluatedPropertiesAction(EvaluatedPropertiesAction);
     }
 
-    internal override bool IsBuiltIn => true;
-
     private readonly Dictionary<string, string> _projectsPerOutputPath = new(StringComparer.CurrentCultureIgnoreCase);
     private readonly HashSet<string> _projects = new(StringComparer.CurrentCultureIgnoreCase);
 

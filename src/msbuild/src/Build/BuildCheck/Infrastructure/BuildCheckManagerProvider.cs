@@ -61,7 +61,7 @@ internal sealed class BuildCheckManagerProvider : IBuildCheckManagerProvider
         _instance = null;
     } 
 
-    internal sealed class BuildCheckManager : IBuildCheckManager, IBuildEngineDataRouter, IResultReporter
+    internal sealed class BuildCheckManager : IBuildCheckManager, IBuildEngineDataRouter
     {
         private readonly TracingReporter _tracingReporter = new TracingReporter();
         private readonly IConfigurationProvider _configurationProvider = new ConfigurationProvider();
@@ -229,10 +229,10 @@ internal sealed class BuildCheckManagerProvider : IBuildCheckManagerProvider
             CheckConfigurationEffective[] configurations;
             if (checkFactoryContext.MaterializedCheck == null)
             {
-                CheckConfiguration[] userEditorConfigs =
+                CheckConfiguration[] userConfigs =
                     _configurationProvider.GetUserConfigurations(projectFullPath, checkFactoryContext.RuleIds);
 
-                if (userEditorConfigs.All(c => !(c.IsEnabled ?? checkFactoryContext.IsEnabledByDefault)))
+                if (userConfigs.All(c => !(c.IsEnabled ?? checkFactoryContext.IsEnabledByDefault)))
                 {
                     // the check was not yet instantiated nor mounted - so nothing to do here now.
                     return;
@@ -242,11 +242,11 @@ internal sealed class BuildCheckManagerProvider : IBuildCheckManagerProvider
                     _configurationProvider.GetCustomConfigurations(projectFullPath, checkFactoryContext.RuleIds);
 
                 Check uninitializedCheck = checkFactoryContext.Factory();
-                configurations = _configurationProvider.GetMergedConfigurations(userEditorConfigs, uninitializedCheck);
+                configurations = _configurationProvider.GetMergedConfigurations(userConfigs, uninitializedCheck);
 
                 ConfigurationContext configurationContext = ConfigurationContext.FromDataEnumeration(customConfigData, configurations);
 
-                wrapper = checkFactoryContext.Initialize(uninitializedCheck, this, configurationContext);
+                wrapper = checkFactoryContext.Initialize(uninitializedCheck, configurationContext);
                 checkFactoryContext.MaterializedCheck = wrapper;
                 Check check = wrapper.Check;
 
@@ -271,7 +271,7 @@ internal sealed class BuildCheckManagerProvider : IBuildCheckManagerProvider
                 // price to be paid in that case is slight performance cost.
 
                 // Create the wrapper and register to central context
-                wrapper.StartNewProject(projectFullPath, configurations, userEditorConfigs);
+                wrapper.StartNewProject(projectFullPath, configurations);
                 var wrappedContext = new CheckRegistrationContext(wrapper, _buildCheckCentralContext);
                 check.RegisterActions(wrappedContext);
             }
@@ -279,15 +279,13 @@ internal sealed class BuildCheckManagerProvider : IBuildCheckManagerProvider
             {
                 wrapper = checkFactoryContext.MaterializedCheck;
 
-                CheckConfiguration[] userEditorConfigs =
-                    _configurationProvider.GetUserConfigurations(projectFullPath, checkFactoryContext.RuleIds);
-                configurations = _configurationProvider.GetMergedConfigurations(userEditorConfigs, wrapper.Check);
+                configurations = _configurationProvider.GetMergedConfigurations(projectFullPath, wrapper.Check);
 
                 _configurationProvider.CheckCustomConfigurationDataValidity(projectFullPath,
                     checkFactoryContext.RuleIds[0]);
 
                 // Update the wrapper
-                wrapper.StartNewProject(projectFullPath, configurations, userEditorConfigs);
+                wrapper.StartNewProject(projectFullPath, configurations);
             }
         }
 
@@ -348,7 +346,7 @@ internal sealed class BuildCheckManagerProvider : IBuildCheckManagerProvider
             if (checkToRemove.MaterializedCheck is not null)
             {
                 _buildCheckCentralContext.DeregisterCheck(checkToRemove.MaterializedCheck);
-				_ruleTelemetryData.AddRange(checkToRemove.MaterializedCheck.GetRuleTelemetryData());
+                _tracingReporter.AddCheckStats(checkToRemove.MaterializedCheck.Check.FriendlyName, checkToRemove.MaterializedCheck.Elapsed);
                 checkToRemove.MaterializedCheck.Check.Dispose();
             }
         }
@@ -413,18 +411,19 @@ internal sealed class BuildCheckManagerProvider : IBuildCheckManagerProvider
             => _buildEventsProcessor
                 .ProcessTaskParameterEventArgs(checkContext, taskParameterEventArgs);
 
-        private readonly List<BuildCheckRuleTelemetryData> _ruleTelemetryData = [];
-        public BuildCheckTracingData CreateCheckTracingStats()
+        public Dictionary<string, TimeSpan> CreateCheckTracingStats()
         {
             foreach (CheckFactoryContext checkFactoryContext in _checkRegistry)
             {
                 if (checkFactoryContext.MaterializedCheck != null)
                 {
-                    _ruleTelemetryData.AddRange(checkFactoryContext.MaterializedCheck.GetRuleTelemetryData());
+                    _tracingReporter.AddCheckStats(checkFactoryContext.FriendlyName, checkFactoryContext.MaterializedCheck.Elapsed);
+                    checkFactoryContext.MaterializedCheck.ClearStats();
                 }
             }
 
-            return new BuildCheckTracingData(_ruleTelemetryData, _tracingReporter.GetInfrastructureTracingStats());
+            _tracingReporter.AddCheckInfraStats();
+            return _tracingReporter.TracingStats;
         }
 
         public void FinalizeProcessing(LoggingContext loggingContext)
@@ -528,53 +527,10 @@ internal sealed class BuildCheckManagerProvider : IBuildCheckManagerProvider
         {
         }
 
-        public void StartProjectRequest(ICheckContext checkContext, string projectFullPath)
+        public void StartProjectRequest(BuildEventContext buildEventContext, string projectFullPath)
         {
-            BuildEventContext buildEventContext = checkContext.BuildEventContext;
-
             // There can be multiple ProjectStarted-ProjectFinished per single configuration project build (each request for different target)
             _projectsByInstanceId[buildEventContext.ProjectInstanceId] = projectFullPath;
-
-            if (_deferredEvalDiagnostics.TryGetValue(buildEventContext.EvaluationId, out var list))
-            {
-                foreach (BuildEventArgs deferredArgs in list)
-                {
-                    deferredArgs.BuildEventContext = deferredArgs.BuildEventContext!.WithInstanceIdAndContextId(buildEventContext);
-                    checkContext.DispatchBuildEvent(deferredArgs);
-                }
-                list.Clear();
-                _deferredEvalDiagnostics.Remove(buildEventContext.EvaluationId);
-            }
-        }
-
-        private readonly Dictionary<int, List<BuildEventArgs>> _deferredEvalDiagnostics = new();
-        void IResultReporter.ReportResult(BuildEventArgs eventArgs, ICheckContext checkContext)
-        {
-            // If we do not need to decide on promotability/demotability of warnings or we are ready to decide on those
-            //  - we can just dispatch the event.
-            if (
-                // no context - we cannot defer as we'd need eval id to queue it
-                eventArgs.BuildEventContext == null ||
-                // no eval id - we cannot defer as we'd need eval id to queue it
-                eventArgs.BuildEventContext.EvaluationId == BuildEventContext.InvalidEvaluationId ||
-                // instance id known - no need to defer
-                eventArgs.BuildEventContext.ProjectInstanceId != BuildEventContext.InvalidProjectInstanceId ||
-                // it's not a warning - no need to defer
-                eventArgs is not BuildWarningEventArgs)
-            {
-                checkContext.DispatchBuildEvent(eventArgs);
-                return;
-            }
-
-            // This is evaluation - so we need to defer it until we know the instance id and context id
-
-            if (!_deferredEvalDiagnostics.TryGetValue(eventArgs.BuildEventContext.EvaluationId, out var list))
-            {
-                list = [];
-                _deferredEvalDiagnostics[eventArgs.BuildEventContext.EvaluationId] = list;
-            }
-
-            list.Add(eventArgs);
         }
 
         public void EndProjectRequest(
@@ -632,7 +588,7 @@ internal sealed class BuildCheckManagerProvider : IBuildCheckManagerProvider
                 return ba;
             }
 
-            public CheckWrapper Initialize(Check ba, IResultReporter resultReporter, ConfigurationContext configContext)
+            public CheckWrapper Initialize(Check ba, ConfigurationContext configContext)
             {
                 try
                 {
@@ -647,7 +603,7 @@ internal sealed class BuildCheckManagerProvider : IBuildCheckManagerProvider
                     throw new BuildCheckConfigurationException(
                         $"The Check '{ba.FriendlyName}' failed to initialize: {e.Message}", e);
                 }
-                return new CheckWrapper(ba, resultReporter);
+                return new CheckWrapper(ba);
             }
 
             public CheckWrapper? MaterializedCheck { get; set; }
@@ -659,9 +615,4 @@ internal sealed class BuildCheckManagerProvider : IBuildCheckManagerProvider
             public string FriendlyName => MaterializedCheck?.Check.FriendlyName ?? factory().FriendlyName;
         }
     }
-}
-
-internal interface IResultReporter
-{
-    void ReportResult(BuildEventArgs result, ICheckContext checkContext);
 }

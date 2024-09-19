@@ -36,7 +36,7 @@ internal class BuildCheckBuildEventHandler
             { typeof(ProjectEvaluationFinishedEventArgs), (BuildEventArgs e) => HandleProjectEvaluationFinishedEvent((ProjectEvaluationFinishedEventArgs)e) },
             { typeof(ProjectEvaluationStartedEventArgs), (BuildEventArgs e) => HandleProjectEvaluationStartedEvent((ProjectEvaluationStartedEventArgs)e) },
             { typeof(EnvironmentVariableReadEventArgs), (BuildEventArgs e) => HandleEnvironmentVariableReadEvent((EnvironmentVariableReadEventArgs)e) },
-            { typeof(ProjectStartedEventArgs), (BuildEventArgs e) => HandleProjectStartedRequest((ProjectStartedEventArgs)e) },
+            { typeof(ProjectStartedEventArgs), (BuildEventArgs e) => _buildCheckManager.StartProjectRequest(e.BuildEventContext!, ((ProjectStartedEventArgs)e).ProjectFile!) },
             { typeof(ProjectFinishedEventArgs), (BuildEventArgs e) => HandleProjectFinishedRequest((ProjectFinishedEventArgs)e) },
             { typeof(BuildCheckTracingEventArgs), (BuildEventArgs e) => HandleBuildCheckTracingEvent((BuildCheckTracingEventArgs)e) },
             { typeof(BuildCheckAcquisitionEventArgs), (BuildEventArgs e) => HandleBuildCheckAcquisitionEvent((BuildCheckAcquisitionEventArgs)e) },
@@ -98,11 +98,6 @@ internal class BuildCheckBuildEventHandler
         }
     }
 
-    private void HandleProjectStartedRequest(ProjectStartedEventArgs eventArgs)
-        => _buildCheckManager.StartProjectRequest(
-            _checkContextFactory.CreateCheckContext(eventArgs.BuildEventContext!),
-            eventArgs!.ProjectFile!);
-
     private void HandleProjectFinishedRequest(ProjectFinishedEventArgs eventArgs)
         => _buildCheckManager.EndProjectRequest(
                 _checkContextFactory.CreateCheckContext(eventArgs.BuildEventContext!),
@@ -112,7 +107,7 @@ internal class BuildCheckBuildEventHandler
     {
         if (!eventArgs.IsAggregatedGlobalReport)
         {
-            _tracingData.MergeIn(eventArgs.TracingData);
+            _stats.Merge(eventArgs.TracingData, (span1, span2) => span1 + span2);
         }
     }
 
@@ -143,25 +138,36 @@ internal class BuildCheckBuildEventHandler
 
     private bool IsMetaProjFile(string? projectFile) => projectFile?.EndsWith(".metaproj", StringComparison.OrdinalIgnoreCase) == true;
 
-    private readonly BuildCheckTracingData _tracingData = new BuildCheckTracingData();
+    private readonly Dictionary<string, TimeSpan> _stats = new Dictionary<string, TimeSpan>();
 
     private void HandleBuildFinishedEvent(BuildFinishedEventArgs eventArgs)
     {
         _buildCheckManager.ProcessBuildFinished(_checkContextFactory.CreateCheckContext(eventArgs.BuildEventContext!));
 
-        _tracingData.MergeIn(_buildCheckManager.CreateCheckTracingStats());
+        _stats.Merge(_buildCheckManager.CreateCheckTracingStats(), (span1, span2) => span1 + span2);
 
         LogCheckStats(_checkContextFactory.CreateCheckContext(GetBuildEventContext(eventArgs)));
     }
 
     private void LogCheckStats(ICheckContext checkContext)
     {
-        Dictionary<string, TimeSpan>  infraStats = _tracingData.InfrastructureTracingData;
-        // Stats are per rule, while runtime is per check - and check can have multiple rules.
-        // In case of multi-rule check, the runtime stats are duplicated for each rule.
-        Dictionary<string, TimeSpan> checkStats = _tracingData.ExtractCheckStats();
+        Dictionary<string, TimeSpan> infraStats = new Dictionary<string, TimeSpan>();
+        Dictionary<string, TimeSpan> checkStats = new Dictionary<string, TimeSpan>();
 
-        BuildCheckTracingEventArgs statEvent = new BuildCheckTracingEventArgs(_tracingData, true)
+        foreach (var stat in _stats)
+        {
+            if (stat.Key.StartsWith(BuildCheckConstants.infraStatPrefix))
+            {
+                string newKey = stat.Key.Substring(BuildCheckConstants.infraStatPrefix.Length);
+                infraStats[newKey] = stat.Value;
+            }
+            else
+            {
+                checkStats[stat.Key] = stat.Value;
+            }
+        }
+
+        BuildCheckTracingEventArgs statEvent = new BuildCheckTracingEventArgs(_stats, true)
         { BuildEventContext = checkContext.BuildEventContext };
 
         checkContext.DispatchBuildEvent(statEvent);
@@ -171,7 +177,6 @@ internal class BuildCheckBuildEventHandler
         checkContext.DispatchAsCommentFromText(MessageImportance.Low, infraData);
         string checkData = BuildCsvString("Checks run times", checkStats);
         checkContext.DispatchAsCommentFromText(MessageImportance.Low, checkData);
-        checkContext.DispatchTelemetry(_tracingData);
     }
 
     private string BuildCsvString(string title, Dictionary<string, TimeSpan> rowData)

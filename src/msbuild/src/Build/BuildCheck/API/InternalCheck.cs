@@ -28,6 +28,4 @@ internal abstract class InternalCheck : Check
 
         this.RegisterInternalActions(internalRegistrationContext);
     }
-
-    internal override bool IsBuiltIn => true;
 }
