@@ -2,8 +2,7 @@ parameters:
   disableComponentGovernance: false
   componentGovernanceIgnoreDirectories: ''
   is1ESPipeline: false
-  displayName: 'Component Detection'
-
+  
 steps:
 - ${{ if eq(parameters.disableComponentGovernance, 'true') }}:
   - script: echo "##vso[task.setvariable variable=skipComponentGovernanceDetection]true"
@@ -11,6 +10,5 @@ steps:
 - ${{ if ne(parameters.disableComponentGovernance, 'true') }}:
   - task: ComponentGovernanceComponentDetection@0
     continueOnError: true
-    displayName: ${{ parameters.displayName }}
     inputs:
       ignoreDirectories: ${{ parameters.componentGovernanceIgnoreDirectories }}

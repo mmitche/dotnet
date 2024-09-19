@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
+    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
     <IsShippingPackage>false</IsShippingPackage>
   </PropertyGroup>
 

@@ -17,7 +17,6 @@ namespace Microsoft.Build.Experimental.BuildCheck.Infrastructure;
 internal sealed class CheckWrapper
 {
     private readonly Stopwatch _stopwatch = new Stopwatch();
-    private readonly BuildCheckRuleTelemetryData[] _ruleTelemetryData;
 
     /// <summary>
     /// Maximum amount of messages that could be sent per check rule.
@@ -39,29 +38,9 @@ internal sealed class CheckWrapper
     /// </summary>
     private readonly bool _limitReportsNumber = !Traits.Instance.EscapeHatches.DoNotLimitBuildCheckResultsNumber;
 
-    private readonly IResultReporter _resultReporter;
-
-    public CheckWrapper(Check check, IResultReporter resultReporter)
+    public CheckWrapper(Check check)
     {
         Check = check;
-        _resultReporter = resultReporter;
-        _ruleTelemetryData = new BuildCheckRuleTelemetryData[check.SupportedRules.Count];
-
-        InitializeTelemetryData(_ruleTelemetryData, check);
-    }
-
-    private static void InitializeTelemetryData(BuildCheckRuleTelemetryData[] ruleTelemetryData, Check check)
-    {
-        int idx = 0;
-        foreach (CheckRule checkRule in check.SupportedRules)
-        {
-            ruleTelemetryData[idx++] = new BuildCheckRuleTelemetryData(
-                ruleId: checkRule.Id,
-                checkFriendlyName: check.FriendlyName,
-                isBuiltIn: check.IsBuiltIn,
-                defaultSeverity: (checkRule.DefaultConfiguration.Severity ??
-                                  CheckConfigurationEffective.Default.Severity).ToDiagnosticSeverity());
-        }
     }
 
     internal Check Check { get; }
@@ -72,84 +51,26 @@ internal sealed class CheckWrapper
     // In such case - configuration will be same for all projects. So we do not need to store it per project in a collection.
     internal CheckConfigurationEffective? CommonConfig { get; private set; }
 
-    /// <summary>
-    /// Ensures the check being configured for a new project (as each project can have different settings)
-    /// </summary>
-    /// <param name="fullProjectPath"></param>
-    /// <param name="effectiveConfigs">Resulting merged configurations per rule (merged from check default and explicit user editorconfig).</param>
-    /// <param name="editorConfigs">Configurations from editorconfig per rule.</param>
+    // start new project
     internal void StartNewProject(
         string fullProjectPath,
-        IReadOnlyList<CheckConfigurationEffective> effectiveConfigs,
-        IReadOnlyList<CheckConfiguration> editorConfigs)
+        IReadOnlyList<CheckConfigurationEffective> userConfigs)
     {
-        // Let's first update the telemetry data for the rules.
-        int idx = 0;
-        foreach (BuildCheckRuleTelemetryData ruleTelemetryData in _ruleTelemetryData)
-        {
-            CheckConfigurationEffective effectiveConfig = effectiveConfigs[Math.Max(idx, effectiveConfigs.Count - 1)];
-            if (editorConfigs[idx].Severity != null)
-            {
-                ruleTelemetryData.ExplicitSeverities.Add(editorConfigs[idx].Severity!.Value.ToDiagnosticSeverity());
-            }
-
-            if (effectiveConfig.IsEnabled)
-            {
-                ruleTelemetryData.ProjectNamesWhereEnabled.Add(fullProjectPath);
-            }
-
-            idx++;
-        }
-
         if (!_areStatsInitialized)
         {
             _areStatsInitialized = true;
-            CommonConfig = effectiveConfigs[0];
+            CommonConfig = userConfigs[0];
 
-            if (effectiveConfigs.Count == 1)
+            if (userConfigs.Count == 1)
             {
                 return;
             }
         }
 
         // The Common configuration is not common anymore - let's nullify it and we will need to fetch configuration per project.
-        if (CommonConfig == null || !effectiveConfigs.All(t => t.IsSameConfigurationAs(CommonConfig)))
+        if (CommonConfig == null || !userConfigs.All(t => t.IsSameConfigurationAs(CommonConfig)))
         {
             CommonConfig = null;
-        }
-    }
-
-    private void AddDiagnostic(CheckConfigurationEffective configurationEffective)
-    {
-        BuildCheckRuleTelemetryData? telemetryData =
-            _ruleTelemetryData.FirstOrDefault(td => td.RuleId.Equals(configurationEffective.RuleId));
-
-        if (telemetryData == null)
-        {
-            return;
-        }
-
-        switch (configurationEffective.Severity)
-        {
-            
-            case CheckResultSeverity.Suggestion:
-                telemetryData.IncrementMessagesCount();
-                break;
-            case CheckResultSeverity.Warning:
-                telemetryData.IncrementWarningsCount();
-                break;
-            case CheckResultSeverity.Error:
-                telemetryData.IncrementErrorsCount();
-                break;
-            case CheckResultSeverity.Default:
-            case CheckResultSeverity.None:
-            default:
-                break;
-        }
-
-        if (IsThrottled)
-        {
-            telemetryData.SetThrottled();
         }
     }
 
@@ -160,7 +81,7 @@ internal sealed class CheckWrapper
             _reportsCount++;
             BuildEventArgs eventArgs = result.ToEventArgs(config.Severity);
             eventArgs.BuildEventContext = checkContext.BuildEventContext;
-            _resultReporter.ReportResult(eventArgs, checkContext);
+            checkContext.DispatchBuildEvent(eventArgs);
 
             // Big amount of build check messages may lead to build hang.
             // See issue https://github.com/dotnet/msbuild/issues/10414
@@ -172,9 +93,6 @@ internal sealed class CheckWrapper
                     IsThrottled = true;
                 }
             }
-
-            // Add the diagnostic to the check wrapper for telemetry purposes.
-            AddDiagnostic(config);
         }
     }
 
@@ -184,15 +102,9 @@ internal sealed class CheckWrapper
         _areStatsInitialized = false;
     }
 
-    internal IReadOnlyList<BuildCheckRuleTelemetryData> GetRuleTelemetryData()
-    {
-        foreach (BuildCheckRuleTelemetryData ruleTelemetryData in _ruleTelemetryData)
-        {
-            ruleTelemetryData.TotalRuntime = _stopwatch.Elapsed;
-        }
+    internal TimeSpan Elapsed => _stopwatch.Elapsed;
 
-        return _ruleTelemetryData;
-    }
+    internal void ClearStats() => _stopwatch.Reset();
 
     internal CleanupScope StartSpan()
     {

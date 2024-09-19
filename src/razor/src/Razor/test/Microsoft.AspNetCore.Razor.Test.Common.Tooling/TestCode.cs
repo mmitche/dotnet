@@ -47,9 +47,6 @@ internal readonly struct TestCode
     public ImmutableArray<TextSpan> Spans
         => GetNamedSpans(string.Empty);
 
-    public ImmutableDictionary<string, ImmutableArray<TextSpan>> NamedSpans
-        => _nameToSpanMap;
-
     public ImmutableArray<TextSpan> GetNamedSpans(string name)
         => _nameToSpanMap[name];
 

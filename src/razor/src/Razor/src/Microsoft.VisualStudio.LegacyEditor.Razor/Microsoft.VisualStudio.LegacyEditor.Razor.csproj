@@ -4,7 +4,7 @@
     <TargetFramework>$(DefaultNetFxTargetFramework)</TargetFramework>
     <EnableApiCheck>false</EnableApiCheck>
     <IsShippingPackage>false</IsShippingPackage>
-    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <IsPackable Condition="'$(OS)' != 'Windows_NT'">false</IsPackable>
   </PropertyGroup>
 

@@ -8,7 +8,7 @@
     <!-- Do not directly await a task-->
     <NoWarn>$(NoWarn);CA2007</NoWarn>
 
-    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForTests)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <ItemGroup>

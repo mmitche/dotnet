@@ -27,18 +27,14 @@ ImplFile
                                      [WithNull
                                         (LongIdent
                                            (SynLongIdent ([string], [], [None])),
-                                         false, (1,24--1,37),
-                                         { BarRange = (1,31--1,32) });
+                                         false, (1,24--1,37));
                                       WithNull
                                         (LongIdent
                                            (SynLongIdent ([T], [], [None])),
-                                         false, (1,39--1,47),
-                                         { BarRange = (1,41--1,42) })],
-                                     [(1,37--1,38)], Some (1,47--1,48), false,
-                                     (1,19--1,48)), false, (1,19--1,55),
-                                  { BarRange = (1,49--1,50) })], [],
-                              Some (1,55--1,56), false, (1,8--1,56)), false,
-                           (1,8--1,63), { BarRange = (1,57--1,58) }),
+                                         false, (1,39--1,47))], [(1,37--1,38)],
+                                     Some (1,47--1,48), false, (1,19--1,48)),
+                                  false, (1,19--1,55))], [], Some (1,55--1,56),
+                              false, (1,8--1,56)), false, (1,8--1,63)),
                         (1,8--1,63), [], { ColonRange = Some (1,6--1,7) })),
                   Typed
                     (Null (1,66--1,70),
@@ -53,17 +49,13 @@ ImplFile
                                   [WithNull
                                      (LongIdent
                                         (SynLongIdent ([string], [], [None])),
-                                      false, (1,24--1,37),
-                                      { BarRange = (1,31--1,32) });
+                                      false, (1,24--1,37));
                                    WithNull
                                      (LongIdent (SynLongIdent ([T], [], [None])),
-                                      false, (1,39--1,47),
-                                      { BarRange = (1,41--1,42) })],
-                                  [(1,37--1,38)], Some (1,47--1,48), false,
-                                  (1,19--1,48)), false, (1,19--1,55),
-                               { BarRange = (1,49--1,50) })], [],
-                           Some (1,55--1,56), false, (1,8--1,56)), false,
-                        (1,8--1,63), { BarRange = (1,57--1,58) }), (1,66--1,70)),
+                                      false, (1,39--1,47))], [(1,37--1,38)],
+                                  Some (1,47--1,48), false, (1,19--1,48)), false,
+                               (1,19--1,55))], [], Some (1,55--1,56), false,
+                           (1,8--1,56)), false, (1,8--1,63)), (1,66--1,70)),
                   (1,4--1,5), Yes (1,0--1,70),
                   { LeadingKeyword = Let (1,0--1,3)
                     InlineKeyword = None

@@ -664,20 +664,11 @@ internal static class NativeMethods
         }
     }
 
-    private static SAC_State? s_sacState;
-
     /// <summary>
     /// Get from registry state of the Smart App Control (SAC) on the system.
     /// </summary>
     /// <returns>State of SAC</returns>
     internal static SAC_State GetSACState()
-    {
-        s_sacState ??= GetSACStateInternal();
-
-        return s_sacState.Value;
-    }
-
-    internal static SAC_State GetSACStateInternal()
     {
         if (IsWindows)
         {

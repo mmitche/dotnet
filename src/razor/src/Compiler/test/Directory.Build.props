@@ -8,6 +8,6 @@
     -->
     <IsTestAssetProject>true</IsTestAssetProject>
     <IsPackable>false</IsPackable>
-    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
 </Project>

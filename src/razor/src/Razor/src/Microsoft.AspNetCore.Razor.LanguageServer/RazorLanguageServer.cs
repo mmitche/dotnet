@@ -119,6 +119,9 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
         // Add the logger as a service in case anything in CLaSP pulls it out to do logging
         services.AddSingleton<ILspLogger>(Logger);
 
+        services.AddSingleton<IAdhocWorkspaceFactory, AdhocWorkspaceFactory>();
+        services.AddSingleton<IWorkspaceProvider, LspWorkspaceProvider>();
+
         services.AddSingleton<IFormattingCodeDocumentProvider, LspFormattingCodeDocumentProvider>();
 
         var featureOptions = _featureOptions ?? new DefaultLanguageServerFeatureOptions();
@@ -128,6 +131,7 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
 
         services.AddLifeCycleServices(this, _clientConnection, _lspServerActivationTracker);
 
+        services.AddDiagnosticServices();
         services.AddSemanticTokensServices(featureOptions);
         services.AddDocumentManagementServices(featureOptions);
         services.AddCompletionServices();
@@ -139,9 +143,6 @@ internal partial class RazorLanguageServer : SystemTextJsonLanguageServer<RazorR
 
         if (!featureOptions.UseRazorCohostServer)
         {
-            // Diagnostics
-            services.AddDiagnosticServices();
-
             // Auto insert
             services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
             services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();

@@ -18,9 +18,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-internal class FormattingLanguageServerClient(HtmlFormattingService htmlFormattingService, ILoggerFactory loggerFactory) : IClientConnection
+internal class FormattingLanguageServerClient(ILoggerFactory loggerFactory) : IClientConnection
 {
-    private readonly HtmlFormattingService _htmlFormattingService = htmlFormattingService;
     private readonly Dictionary<string, RazorCodeDocument> _documents = [];
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
@@ -37,7 +36,7 @@ internal class FormattingLanguageServerClient(HtmlFormattingService htmlFormatti
     {
         var generatedHtml = GetGeneratedHtml(@params.TextDocument.Uri);
 
-        var edits =  await _htmlFormattingService.GetOnTypeFormattingEditsAsync(_loggerFactory, @params.TextDocument.Uri, generatedHtml, @params.Position, @params.Options.InsertSpaces, @params.Options.TabSize);
+        var edits =  await HtmlFormatting.GetOnTypeFormattingEditsAsync(_loggerFactory, @params.TextDocument.Uri, generatedHtml, @params.Position, @params.Options.InsertSpaces, @params.Options.TabSize);
 
         return new()
         {
@@ -49,7 +48,7 @@ internal class FormattingLanguageServerClient(HtmlFormattingService htmlFormatti
     {
         var generatedHtml = GetGeneratedHtml(@params.TextDocument.Uri);
 
-        var edits = await _htmlFormattingService.GetDocumentFormattingEditsAsync(_loggerFactory, @params.TextDocument.Uri, generatedHtml, @params.Options.InsertSpaces, @params.Options.TabSize);
+        var edits = await HtmlFormatting.GetDocumentFormattingEditsAsync(_loggerFactory, @params.TextDocument.Uri, generatedHtml, @params.Options.InsertSpaces, @params.Options.TabSize);
 
         return new()
         {

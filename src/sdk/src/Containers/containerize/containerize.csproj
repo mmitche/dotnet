@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <StrongNameKeyId>MicrosoftShared</StrongNameKeyId>
     <SignAssembly>true</SignAssembly>
-    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 

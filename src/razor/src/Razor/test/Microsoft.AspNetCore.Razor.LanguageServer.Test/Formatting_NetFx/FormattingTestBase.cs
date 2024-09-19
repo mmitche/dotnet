@@ -34,14 +34,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 public class FormattingTestBase : RazorToolingIntegrationTestBase
 {
-    private readonly HtmlFormattingService _htmlFormattingService;
-
-    internal FormattingTestBase(HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutput)
+    public FormattingTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         ITestOnlyLoggerExtensions.TestOnlyLoggingEnabled = true;
-
-        _htmlFormattingService = htmlFormattingService;
     }
 
     private protected async Task RunFormattingTestAsync(
@@ -98,7 +94,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(LoggerFactory, codeDocument, razorLSPOptions);
         var documentContext = new DocumentContext(uri, documentSnapshot, projectContext: null);
 
-        var client = new FormattingLanguageServerClient(_htmlFormattingService, LoggerFactory);
+        var client = new FormattingLanguageServerClient(LoggerFactory);
         client.AddCodeDocument(codeDocument);
 
         var htmlFormatter = new HtmlFormatter(client);
@@ -163,7 +159,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         }
         else
         {
-            var client = new FormattingLanguageServerClient(_htmlFormattingService, LoggerFactory);
+            var client = new FormattingLanguageServerClient(LoggerFactory);
             client.AddCodeDocument(codeDocument);
 
             var htmlFormatter = new HtmlFormatter(client);
@@ -172,7 +168,7 @@ public class FormattingTestBase : RazorToolingIntegrationTestBase
         }
 
         // Assert
-        var edited = razorSourceText.WithChanges(changes);
+        var edited = razorSourceText.WithChanges( changes);
         var actual = edited.ToString();
 
         AssertEx.EqualOrDiff(expected, actual);

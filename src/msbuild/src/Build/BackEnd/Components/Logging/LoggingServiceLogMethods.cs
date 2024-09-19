@@ -498,39 +498,6 @@ namespace Microsoft.Build.BackEnd.Logging
             int evaluationId = BuildEventContext.InvalidEvaluationId,
             int projectContextId = BuildEventContext.InvalidProjectContextId)
         {
-            var args = CreateProjectStarted(nodeBuildEventContext,
-                submissionId,
-                configurationId,
-                parentBuildEventContext,
-                projectFile,
-                targetNames,
-                properties,
-                items,
-                evaluationId,
-                projectContextId);
-
-            this.LogProjectStarted(args);
-
-            return args.BuildEventContext;
-        }
-
-        public void LogProjectStarted(ProjectStartedEventArgs buildEvent)
-        {
-            ProcessLoggingEvent(buildEvent);
-        }
-
-        public ProjectStartedEventArgs CreateProjectStarted(
-            BuildEventContext nodeBuildEventContext,
-            int submissionId,
-            int configurationId,
-            BuildEventContext parentBuildEventContext,
-            string projectFile,
-            string targetNames,
-            IEnumerable<DictionaryEntry> properties,
-            IEnumerable<DictionaryEntry> items,
-            int evaluationId = BuildEventContext.InvalidEvaluationId,
-            int projectContextId = BuildEventContext.InvalidProjectContextId)
-        {
             ErrorUtilities.VerifyThrow(nodeBuildEventContext != null, "Need a nodeBuildEventContext");
 
             if (projectContextId == BuildEventContext.InvalidProjectContextId)
@@ -593,7 +560,9 @@ namespace Microsoft.Build.BackEnd.Logging
                     buildRequestConfiguration.ToolsVersion);
             buildEvent.BuildEventContext = projectBuildEventContext;
 
-            return buildEvent;
+            ProcessLoggingEvent(buildEvent);
+
+            return projectBuildEventContext;
         }
 
         /// <summary>

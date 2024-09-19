@@ -512,14 +512,6 @@ type SynTypeOrTrivia =
         OrKeyword: range
     }
 
-/// Represents additional information for SynType.WithNull
-[<NoEquality; NoComparison>]
-type SynTypeWithNullTrivia =
-    {
-        /// The syntax range of the `|` token
-        BarRange: range
-    }
-
 /// Represents additional information for SynBindingReturnInfo
 [<NoEquality; NoComparison>]
 type SynBindingReturnInfoTrivia =
@@ -553,14 +545,3 @@ type SynTyparDeclTrivia =
 type SynMeasureConstantTrivia =
     { LessRange: range
       GreaterRange: range }
-
-/// Represents additional information for SynTypeConstraint.WhereTyparNotSupportsNull
-[<NoEquality; NoComparison>]
-type SynTypeConstraintWhereTyparNotSupportsNullTrivia =
-    {
-        /// The syntax range of `:`
-        ColonRange: range
-
-        /// The syntax range of `not`
-        NotRange: range
-    }

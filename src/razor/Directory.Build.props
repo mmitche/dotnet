@@ -22,7 +22,7 @@
     <TreatWarningsAsErrors Condition="'$(CI)' == 'true'">true</TreatWarningsAsErrors>
     <GenerateResxSource>true</GenerateResxSource>
     <GenerateResxSourceEmitFormatMethods>true</GenerateResxSourceEmitFormatMethods>
-    <ExcludeFromSourceOnlyBuild Condition="'$(IsUnitTestProject)' == 'true'">true</ExcludeFromSourceOnlyBuild>
+    <ExcludeFromSourceBuild Condition="'$(IsUnitTestProject)' == 'true'">true</ExcludeFromSourceBuild>
     <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
     <EnableWindowsTargeting Condition="'$(DotNetBuildSourceOnly)' != 'true'">true</EnableWindowsTargeting>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
@@ -40,7 +40,7 @@
     <EmbeddedResourceUseDependentUponConvention>false</EmbeddedResourceUseDependentUponConvention>
 
     <!-- By default, nothing builds from source build. Individual projects can opt in instead -->
-    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
 
     <DefaultNetFxTargetFramework>net472</DefaultNetFxTargetFramework>
   </PropertyGroup>

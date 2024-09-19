@@ -61,7 +61,7 @@ internal interface IBuildCheckManager
 
     void ProcessCheckAcquisition(CheckAcquisitionData acquisitionData, ICheckContext checksContext);
 
-    BuildCheckTracingData CreateCheckTracingStats();
+    Dictionary<string, TimeSpan> CreateCheckTracingStats();
 
     void FinalizeProcessing(LoggingContext loggingContext);
 
@@ -79,7 +79,7 @@ internal interface IBuildCheckManager
 
     void EndProjectEvaluation(BuildEventContext buildEventContext);
 
-    void StartProjectRequest(ICheckContext checksContext, string projectFullPath);
+    void StartProjectRequest(BuildEventContext buildEventContext, string projectFullPath);
 
     void EndProjectRequest(ICheckContext checksContext, string projectFullPath);
 

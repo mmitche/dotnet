@@ -57,7 +57,7 @@ public class CohostDocumentSpellCheckEndpointTest(ITestOutputHelper testOutputHe
 
     private async Task VerifySemanticTokensAsync(TestCode input)
     {
-        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var endpoint = new CohostDocumentSpellCheckEndpoint(RemoteServiceInvoker);
