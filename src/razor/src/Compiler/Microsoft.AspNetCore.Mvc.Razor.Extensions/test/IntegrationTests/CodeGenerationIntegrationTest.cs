@@ -6,6 +6,7 @@
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -16,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.IntegrationTests;
 
 public class CodeGenerationIntegrationTest : IntegrationTestBase
 {
-    private static readonly CSharpCompilation DefaultBaseCompilation = TestCompilation.Create().WithAssemblyName("AppCode");
+    private static readonly CSharpCompilation DefaultBaseCompilation = MvcShim.BaseCompilation.WithAssemblyName("AppCode");
 
     private RazorConfiguration _configuration;
 
@@ -238,11 +239,11 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void Sections_Runtime()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
+        AddCSharpSyntaxTree($$"""
 
             using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-            public class InputTestTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+            public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
             {
                 public ModelExpression For { get; set; }
             }
@@ -388,10 +389,10 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void ModelExpressionTagHelper_Runtime()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
+        AddCSharpSyntaxTree($$"""
             using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-            public class InputTestTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+            public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
             {
                 public ModelExpression For { get; set; }
             }
@@ -412,8 +413,8 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void RazorPages_Runtime()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
-            public class DivTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+        AddCSharpSyntaxTree($$"""
+            public class DivTagHelper : {{typeof(TagHelper).FullName}}
             {
 
             }
@@ -449,8 +450,8 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void RazorPagesWithoutModel_Runtime()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
-            public class DivTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+        AddCSharpSyntaxTree($$"""
+            public class DivTagHelper : {{typeof(TagHelper).FullName}}
             {
 
             }
@@ -501,7 +502,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void ViewComponentTagHelper_Runtime()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
+        AddCSharpSyntaxTree($$"""
             public class TestViewComponent
             {
                 public string Invoke(string firstName)
@@ -510,8 +511,8 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
                 }
             }
 
-            [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute]
-            public class AllTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+            [{{typeof(HtmlTargetElementAttribute).FullName}}]
+            public class AllTagHelper : {{typeof(TagHelper).FullName}}
             {
                 public string Bar { get; set; }
             }
@@ -598,15 +599,15 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void RazorPage_WithCssScope()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
-            [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute("all")]
-            public class AllTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+        AddCSharpSyntaxTree($$"""
+            [{{typeof(HtmlTargetElementAttribute).FullName}}("all")]
+            public class AllTagHelper : {{typeof(TagHelper).FullName}}
             {
                 public string Bar { get; set; }
             }
 
-            [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute("form")]
-            public class FormTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+            [{{typeof(HtmlTargetElementAttribute).FullName}}("form")]
+            public class FormTagHelper : {{typeof(TagHelper).FullName}}
             {
             }
             """);
@@ -642,15 +643,15 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void RazorView_WithCssScope()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
-            [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute("all")]
-            public class AllTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+        AddCSharpSyntaxTree($$"""
+            [{{typeof(HtmlTargetElementAttribute).FullName}}("all")]
+            public class AllTagHelper : {{typeof(TagHelper).FullName}}
             {
                 public string Bar { get; set; }
             }
 
-            [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute("form")]
-            public class FormTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+            [{{typeof(HtmlTargetElementAttribute).FullName}}("form")]
+            public class FormTagHelper : {{typeof(TagHelper).FullName}}
             {
             }
             """);
@@ -685,14 +686,14 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void RazorView_Layout_WithCssScope()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
-            [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute("all")]
-            public class AllTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+        AddCSharpSyntaxTree($$"""
+            [{{typeof(HtmlTargetElementAttribute).FullName}}("all")]
+            public class AllTagHelper : {{typeof(TagHelper).FullName}}
             {
                 public string Bar { get; set; }
             }
-            [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute("form")]
-            public class FormTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+            [{{typeof(HtmlTargetElementAttribute).FullName}}("form")]
+            public class FormTagHelper : {{typeof(TagHelper).FullName}}
             {
             }
             """);
@@ -1108,10 +1109,10 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void Sections_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
+        AddCSharpSyntaxTree($$"""
             using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-            public class InputTestTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+            public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
             {
                 public ModelExpression For { get; set; }
             }
@@ -1293,10 +1294,10 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void ModelExpressionTagHelper_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
+        AddCSharpSyntaxTree($$"""
             using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-            public class InputTestTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+            public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
             {
                 public ModelExpression For { get; set; }
             }
@@ -1319,8 +1320,8 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void RazorPages_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
-            public class DivTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+        AddCSharpSyntaxTree($$"""
+            public class DivTagHelper : {{typeof(TagHelper).FullName}}
             {
 
             }
@@ -1360,8 +1361,8 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void RazorPagesWithoutModel_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
-            public class DivTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+        AddCSharpSyntaxTree($$"""
+            public class DivTagHelper : {{typeof(TagHelper).FullName}}
             {
 
             }
@@ -1418,7 +1419,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     public void ViewComponentTagHelper_DesignTime()
     {
         // Arrange
-        AddCSharpSyntaxTree("""
+        AddCSharpSyntaxTree($$"""
             public class TestViewComponent
             {
                 public string Invoke(string firstName)
@@ -1427,8 +1428,8 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
                 }
             }
 
-            [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute]
-            public class AllTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+            [{{typeof(HtmlTargetElementAttribute).FullName}}]
+            public class AllTagHelper : {{typeof(TagHelper).FullName}}
             {
                 public string Bar { get; set; }
             }

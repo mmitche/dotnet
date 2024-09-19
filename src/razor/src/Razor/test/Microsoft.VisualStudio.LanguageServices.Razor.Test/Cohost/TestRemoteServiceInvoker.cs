@@ -57,11 +57,6 @@ internal sealed class TestRemoteServiceInvoker(
         return await invocation(service, solutionInfo, cancellationToken);
     }
 
-    public void MapSolutionIdToRemote(SolutionId localSolutionId, Solution remoteSolution)
-    {
-        _serviceInterceptor.MapSolutionIdToRemote(localSolutionId, remoteSolution);
-    }
-
     public void Dispose()
     {
         _reentrantSemaphore.Dispose();

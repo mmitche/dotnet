@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 

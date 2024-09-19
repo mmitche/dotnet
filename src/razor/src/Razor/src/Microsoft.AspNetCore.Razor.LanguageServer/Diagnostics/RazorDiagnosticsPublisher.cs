@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -188,7 +187,7 @@ internal partial class RazorDiagnosticsPublisher : IDocumentProcessedListener, I
                     if (_documentContextFactory.Value.TryCreate(delegatedParams.TextDocument.Uri, projectContext: null, out var documentContext))
                     {
                         return await _translateDiagnosticsService.Value
-                            .TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext.Snapshot)
+                            .TranslateAsync(RazorLanguageKind.CSharp, fullDiagnostics.Items, documentContext, token)
                             .ConfigureAwait(false);
                     }
                 }

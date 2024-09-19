@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -18,9 +19,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-[Collection(HtmlFormattingCollection.Name)]
-public class CohostRangeFormattingEndpointTest(HtmlFormattingFixture htmlFormattingFixture, ITestOutputHelper testOutputHelper)
-    : CohostEndpointTestBase(testOutputHelper)
+[UseExportProvider]
+public class CohostRangeFormattingEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
     public Task RangeFormatting()
@@ -102,7 +102,7 @@ public class CohostRangeFormattingEndpointTest(HtmlFormattingFixture htmlFormatt
 
     private async Task VerifyRangeFormattingAsync(TestCode input, string expected)
     {
-        var document = await CreateProjectAndRazorDocumentAsync(input.Text);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var htmlDocumentPublisher = new HtmlDocumentPublisher(RemoteServiceInvoker, StrictMock.Of<TrackingLSPDocumentManager>(), StrictMock.Of<JoinableTaskContext>(), LoggerFactory);
@@ -110,7 +110,7 @@ public class CohostRangeFormattingEndpointTest(HtmlFormattingFixture htmlFormatt
         Assert.NotNull(generatedHtml);
 
         var uri = new Uri(document.CreateUri(), $"{document.FilePath}{FeatureOptions.HtmlVirtualDocumentSuffix}");
-        var htmlEdits = await htmlFormattingFixture.Service.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces: true, tabSize: 4);
+        var htmlEdits = await HtmlFormatting.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces: true, tabSize: 4);
 
         var requestInvoker = new TestLSPRequestInvoker([(Methods.TextDocumentFormattingName, htmlEdits)]);
 

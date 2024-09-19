@@ -6,11 +6,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -28,7 +30,7 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
             [||]public class Foo { }
             }
             """;
-        var context = CreateFormattingContext(source);
+        using var context = CreateFormattingContext(source);
         var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
         var input = edits;
         var pass = GetPass();
@@ -49,7 +51,7 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
             [|public class Foo { }
             |]}
             """;
-        var context = CreateFormattingContext(source);
+        using var context = CreateFormattingContext(source);
         var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
         var input = edits;
         var pass = GetPass();
@@ -84,10 +86,12 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
         };
 
         var context = FormattingContext.Create(
+            uri,
             documentSnapshot,
             codeDocument,
             options,
-            new LspFormattingCodeDocumentProvider());
+            new LspFormattingCodeDocumentProvider(),
+            TestAdhocWorkspaceFactory.Instance);
         return context;
     }
 

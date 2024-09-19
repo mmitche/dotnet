@@ -6,7 +6,7 @@
     <IsShipping>false</IsShipping>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>true</IsPackable>
-    <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
+    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 

@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -34,6 +35,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
+[UseExportProvider]
 public partial class SemanticTokensTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
 {
     private readonly Mock<IClientConnection> _clientConnection = new(MockBehavior.Strict);

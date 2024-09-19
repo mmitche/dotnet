@@ -22,7 +22,8 @@ public sealed partial class TestComposition
     public static readonly TestComposition Empty = new(
         ImmutableHashSet<Assembly>.Empty,
         ImmutableHashSet<Type>.Empty,
-        ImmutableHashSet<Type>.Empty);
+        ImmutableHashSet<Type>.Empty,
+        scope: null);
 
     public static readonly TestComposition Roslyn = Empty
         .AddAssemblies(MefHostServices.DefaultAssemblies)
@@ -101,16 +102,31 @@ public sealed partial class TestComposition
     /// </summary>
     public readonly ImmutableHashSet<Type> Parts;
 
+    /// <summary>
+    /// The scope in which to create the export provider, or <see langword="null"/> to use the default scope.
+    /// </summary>
+    public readonly string? Scope;
+
     private readonly Lazy<IExportProviderFactory> _exportProviderFactory;
 
-    private TestComposition(ImmutableHashSet<Assembly> assemblies, ImmutableHashSet<Type> parts, ImmutableHashSet<Type> excludedPartTypes)
+    private TestComposition(ImmutableHashSet<Assembly> assemblies, ImmutableHashSet<Type> parts, ImmutableHashSet<Type> excludedPartTypes, string? scope)
     {
         Assemblies = assemblies;
         Parts = parts;
         ExcludedPartTypes = excludedPartTypes;
+        Scope = scope;
 
         _exportProviderFactory = new Lazy<IExportProviderFactory>(GetOrCreateFactory);
     }
+
+#if false
+/// <summary>
+/// Returns a new instance of <see cref="HostServices"/> for the composition. This will either be a MEF composition or VS MEF composition host,
+/// depending on what layer the composition is for. Editor Features and VS layers use VS MEF composition while anything else uses System.Composition.
+/// </summary>
+public HostServices GetHostServices()
+    => VisualStudioMefHostServices.Create(ExportProviderFactory.CreateExportProvider());
+#endif
 
     /// <summary>
     /// VS MEF <see cref="ExportProvider"/>.
@@ -129,7 +145,7 @@ public sealed partial class TestComposition
             }
         }
 
-        var newFactory = ExportProviderCache.CreateExportProviderFactory(GetCatalog());
+        var newFactory = ExportProviderCache.CreateExportProviderFactory(GetCatalog(), Scope);
 
         lock (s_factoryCache)
         {
@@ -199,7 +215,7 @@ public sealed partial class TestComposition
         var testAssembly = assemblies.FirstOrDefault(IsTestAssembly);
         Verify.Operation(testAssembly is null, $"Test assemblies are not allowed in test composition: {testAssembly}. Specify explicit test parts instead.");
 
-        return new TestComposition(assemblies, Parts, ExcludedPartTypes);
+        return new TestComposition(assemblies, Parts, ExcludedPartTypes, Scope);
 
         static bool IsTestAssembly(Assembly assembly)
         {
@@ -214,10 +230,13 @@ public sealed partial class TestComposition
     }
 
     public TestComposition WithParts(ImmutableHashSet<Type> parts)
-        => parts == Parts ? this : new TestComposition(Assemblies, parts, ExcludedPartTypes);
+        => parts == Parts ? this : new TestComposition(Assemblies, parts, ExcludedPartTypes, Scope);
 
     public TestComposition WithExcludedPartTypes(ImmutableHashSet<Type> excludedPartTypes)
-        => excludedPartTypes == ExcludedPartTypes ? this : new TestComposition(Assemblies, Parts, excludedPartTypes);
+        => excludedPartTypes == ExcludedPartTypes ? this : new TestComposition(Assemblies, Parts, excludedPartTypes, Scope);
+
+    public TestComposition WithScope(string? scope)
+        => scope == Scope ? this : new TestComposition(Assemblies, Parts, ExcludedPartTypes, scope);
 
     /// <summary>
     /// Use for VS MEF composition troubleshooting.

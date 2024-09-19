@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -25,6 +26,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
 
+[UseExportProvider]
 public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
 {
     private readonly VSInternalClientCapabilities _clientCapabilities;
