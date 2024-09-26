@@ -47,8 +47,8 @@ public abstract partial class DataGridViewCell : DataGridViewElement, ICloneable
     private static Bitmap? s_errorBmp;
 
     /// <summary>
-    /// Contains non-empty neighboring cells around the current cell.
-    /// Used in <see cref="IKeyboardToolTip.GetNeighboringToolsRectangles"/> method.
+    ///  Contains non-empty neighboring cells around the current cell.
+    ///  Used in <see cref="IKeyboardToolTip.GetNeighboringToolsRectangles"/> method.
     /// </summary>
     private readonly List<Rectangle> _nonEmptyNeighbors;
 
@@ -77,7 +77,8 @@ public abstract partial class DataGridViewCell : DataGridViewElement, ICloneable
     }
 
     // NOTE: currently this finalizer is unneeded (empty). See https://github.com/dotnet/winforms/issues/6858.
-    // All classes that are not need to be finalized must be checked in DataGridViewElement() constructor. Consider to modify it if needed.
+    // All classes that are not need to be finalized must be checked in DataGridViewElement() constructor.
+    // Consider to modify it if needed.
     ~DataGridViewCell() => Dispose(disposing: false);
 
     [Browsable(false)]
@@ -892,7 +893,7 @@ public abstract partial class DataGridViewCell : DataGridViewElement, ICloneable
         return rect;
     }
 
-    // Called when the row that owns the editing control gets unshared.
+    // Called when the row that owns the editing control gets un-shared.
     // Too late in the product cycle to make this a public method.
     internal virtual void CacheEditingControl()
     {
@@ -1116,12 +1117,14 @@ public abstract partial class DataGridViewCell : DataGridViewElement, ICloneable
     }
 
     /// <summary>
-    /// Gets the value indicating whether DataGridView editing control should be processed in accessible
-    /// hierarchy restructuring. This check is necessary to not restructure the accessible hierarchy for
-    /// custom editing controls and for derived classes as inherited accessibility may differ or
-    /// may be not inherited at all.
+    ///  Gets the value indicating whether DataGridView editing control should be processed in accessible
+    ///  hierarchy restructuring. This check is necessary to not restructure the accessible hierarchy for
+    ///  custom editing controls and for derived classes as inherited accessibility may differ or
+    ///  may be not inherited at all.
     /// </summary>
-    /// <returns>True if accessible hierarchy should be manually recreated for the cell and editing control, otherwise False.</returns>
+    /// <returns>
+    ///  True if accessible hierarchy should be manually recreated for the cell and editing control, otherwise False.
+    /// </returns>
     private bool AccessibleRestructuringNeeded
     {
         get
@@ -1154,8 +1157,9 @@ public abstract partial class DataGridViewCell : DataGridViewElement, ICloneable
             }
         }
 
-        // If you are adding releasing unmanaged resources code here (disposing == false), you need to remove this class type
-        // (and all of its subclasses) from check in DataGridViewElement() constructor and DataGridViewElement_Subclasses_SuppressFinalizeCall test!
+        // If you are adding releasing unmanaged resources code here (disposing == false), you need to remove this
+        // class type(and all of its subclasses) from check in DataGridViewElement() constructor and
+        // DataGridViewElement_Subclasses_SuppressFinalizeCall test!
         // Also consider to modify ~DataGridViewCell() description.
     }
 
