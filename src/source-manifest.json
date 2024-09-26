@@ -43,10 +43,10 @@
       "commitSha": "513150c2f25077b1fcb194407e53c433c975f39b"
     },
     {
-      "packageVersion": "10.0.0-alpha.1.24466.2",
+      "packageVersion": "10.0.0-alpha.1.24472.1",
       "path": "efcore",
       "remoteUri": "https://github.com/dotnet/efcore",
-      "commitSha": "0272396605741b6b620c5f61423ed699bda283ce"
+      "commitSha": "3af5cdf52577012fb5b68018132c5f216b9d901a"
     },
     {
       "packageVersion": "10.0.0-alpha.1.24468.9",
@@ -157,16 +157,16 @@
       "commitSha": "805886fdf2212f29758f63a644f50b42ce67020f"
     },
     {
-      "packageVersion": "10.0.0-alpha.1.24426.5",
+      "packageVersion": "10.0.0-alpha.1.24472.1",
       "path": "winforms",
       "remoteUri": "https://github.com/dotnet/winforms",
-      "commitSha": "3b37d24254fe96bc6ad3fd63c6adea21c04f7024"
+      "commitSha": "66894e21aa2328582c49cf116ac66731b2dccf46"
     },
     {
-      "packageVersion": "10.0.0-alpha.1.24429.2",
+      "packageVersion": "10.0.0-alpha.1.24472.1",
       "path": "wpf",
       "remoteUri": "https://github.com/dotnet/wpf",
-      "commitSha": "cc2eee2a404793ac377fb3f42d94c8efdf16ff3c"
+      "commitSha": "fa99ccdc2f3b5cda3801f3bc56d39065308a8318"
     },
     {
       "packageVersion": "9.0.0-preview.24453.1",
