@@ -22,11 +22,13 @@ using Microsoft.AspNetCore.Razor.LanguageServer.SpellCheck;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
+using Microsoft.CodeAnalysis.Razor.SpellCheck;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
@@ -161,10 +163,12 @@ internal static class IServiceCollectionExtensions
         {
             services.AddHandlerWithCapabilities<TextDocumentTextPresentationEndpoint>();
             services.AddHandlerWithCapabilities<TextDocumentUriPresentationEndpoint>();
-        }
 
-        services.AddHandlerWithCapabilities<DocumentSpellCheckEndpoint>();
-        services.AddHandler<WorkspaceSpellCheckEndpoint>();
+            services.AddSingleton<ISpellCheckService, SpellCheckService>();
+            services.AddSingleton<ICSharpSpellCheckRangeProvider, LspCSharpSpellCheckRangeProvider>();
+            services.AddHandlerWithCapabilities<DocumentSpellCheckEndpoint>();
+            services.AddHandler<WorkspaceSpellCheckEndpoint>();
+        }
 
         services.AddHandlerWithCapabilities<DocumentDidChangeEndpoint>();
         services.AddHandler<DocumentDidCloseEndpoint>();

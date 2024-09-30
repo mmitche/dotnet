@@ -6,12 +6,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,16 +23,13 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
     public async Task Execute_NonDestructiveEdit_Allowed()
     {
         // Arrange
-        var source = SourceText.From(@"
-@code {
-public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var edits = new[]
-        {
-            VsLspFactory.CreateTextEdit(2, 0, "    ")
-        };
+        TestCode source = """
+            @code {
+            [||]public class Foo { }
+            }
+            """;
+        var context = CreateFormattingContext(source);
+        var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
         var input = edits;
         var pass = GetPass();
 
@@ -41,23 +37,20 @@ public class Foo { }
         var result = await pass.ExecuteAsync(context, edits, DisposalToken);
 
         // Assert
-        Assert.Same(input, result);
+        Assert.Equal(input, result);
     }
 
     [Fact]
     public async Task Execute_DestructiveEdit_Rejected()
     {
         // Arrange
-        var source = SourceText.From(@"
-@code {
-public class Foo { }
-}
-");
-        using var context = CreateFormattingContext(source);
-        var edits = new[]
-        {
-            VsLspFactory.CreateTextEdit(2, 0, 3, 0, "    ") // Nukes a line
-        };
+        TestCode source = """
+            @code {
+            [|public class Foo { }
+            |]}
+            """;
+        var context = CreateFormattingContext(source);
+        var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
         var input = edits;
         var pass = GetPass();
 
@@ -78,8 +71,9 @@ public class Foo { }
         return pass;
     }
 
-    private static FormattingContext CreateFormattingContext(SourceText source, int tabSize = 4, bool insertSpaces = true, string? fileKind = null)
+    private static FormattingContext CreateFormattingContext(TestCode input, int tabSize = 4, bool insertSpaces = true, string? fileKind = null)
     {
+        var source = SourceText.From(input.Text);
         var path = "file:///path/to/document.razor";
         var uri = new Uri(path);
         var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, fileKind: fileKind);
@@ -90,12 +84,10 @@ public class Foo { }
         };
 
         var context = FormattingContext.Create(
-            uri,
             documentSnapshot,
             codeDocument,
             options,
-            new LspFormattingCodeDocumentProvider(),
-            TestAdhocWorkspaceFactory.Instance);
+            new LspFormattingCodeDocumentProvider());
         return context;
     }
 

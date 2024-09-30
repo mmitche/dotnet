@@ -1862,9 +1862,10 @@ type ILGenericParameterDef =
         Name: string
         Constraints: ILTypes
         Variance: ILGenericVariance
-        HasReferenceTypeConstraint: bool
+        HasReferenceTypeConstraint: bool        
         HasNotNullableValueTypeConstraint: bool
         HasDefaultConstructorConstraint: bool
+        HasAllowsRefStruct: bool
         CustomAttrsStored: ILAttributesStored
         MetadataIndex: int32
     }
@@ -3283,6 +3284,7 @@ let mkILSimpleTypar nm =
         HasReferenceTypeConstraint = false
         HasNotNullableValueTypeConstraint = false
         HasDefaultConstructorConstraint = false
+        HasAllowsRefStruct = false
         CustomAttrsStored = storeILCustomAttrs emptyILCustomAttrs
         MetadataIndex = NoMetadataIdx
     }
@@ -5688,6 +5690,7 @@ let resolveILMethodRefWithRescope r (td: ILTypeDef) (mref: ILMethodRef) =
             mref.CallingConv = md.CallingConv
             && (md.Parameters, argTypes)
                ||> List.lengthsEqAndForall2 (fun p1 p2 -> r p1.Type = p2)
+            && md.GenericParams.Length = mref.GenericArity
             &&
             // REVIEW: this uses equality on ILType. For CMOD_OPTIONAL this is not going to be correct
             r md.Return.Type = retType)

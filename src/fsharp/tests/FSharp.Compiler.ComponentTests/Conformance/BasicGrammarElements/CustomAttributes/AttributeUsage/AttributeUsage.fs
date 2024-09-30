@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
 
 namespace Conformance.BasicGrammarElements
 
@@ -756,6 +756,7 @@ type InterruptibleLazy<'T> private (valueFactory: unit -> 'T) =
             (Error 934, Line 39, Col 10, Line 39, Col 13, "Records, union, abbreviations and struct types cannot have the 'AllowNullLiteral' attribute")
             (Error 842, Line 41, Col 7, Line 41, Col 23, "This attribute is not valid for use on this language element")
             (Error 842, Line 44, Col 7, Line 44, Col 23, "This attribute is not valid for use on this language element")
+            (Error 935, Line 54, Col 10, Line 54, Col 11, "Types with the 'AllowNullLiteral' attribute may only inherit from or implement types which also allow the use of the null literal")
         ]
     
     // SOURCE=E_AllowNullLiteral.fs	# E_AllowNullLiteral.fs
@@ -772,8 +773,9 @@ type InterruptibleLazy<'T> private (valueFactory: unit -> 'T) =
             (Error 934, Line 33, Col 10, Line 33, Col 11, "Records, union, abbreviations and struct types cannot have the 'AllowNullLiteral' attribute")
             (Error 934, Line 36, Col 10, Line 36, Col 11, "Records, union, abbreviations and struct types cannot have the 'AllowNullLiteral' attribute")
             (Error 934, Line 39, Col 10, Line 39, Col 13, "Records, union, abbreviations and struct types cannot have the 'AllowNullLiteral' attribute")
-            (Error 842, Line 41, Col 7, Line 41, Col 23, "This attribute is not valid for use on this language element");
+            (Error 842, Line 41, Col 7, Line 41, Col 23, "This attribute is not valid for use on this language element")
             (Error 842, Line 44, Col 7, Line 44, Col 23, "This attribute is not valid for use on this language element")
+            (Error 935, Line 54, Col 10, Line 54, Col 11, "Types with the 'AllowNullLiteral' attribute may only inherit from or implement types which also allow the use of the null literal")
         ]
         
     // SOURCE= AllowNullLiteral01.fs	# AllowNullLiteral01.fs
@@ -800,16 +802,16 @@ type InterruptibleLazy<'T> private (valueFactory: unit -> 'T) =
         |> verifyCompile
         |> shouldFail
         |> withDiagnostics [
-            (Error 823, Line 3, Col 3, Line 4, Col 16, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
-            (Error 823, Line 6, Col 3, Line 7, Col 14, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
-            (Error 879, Line 6, Col 3, Line 7, Col 14, "Volatile fields must be marked 'mutable' and cannot be thread-static")
-            (Error 823, Line 9, Col 3, Line 10, Col 9, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
-            (Error 879, Line 9, Col 3, Line 10, Col 9, "Volatile fields must be marked 'mutable' and cannot be thread-static")
+            (Error 823, Line 4, Col 15, Line 4, Col 16, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
+            (Error 823, Line 7, Col 11, Line 7, Col 12, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
+            (Error 879, Line 7, Col 11, Line 7, Col 12, "Volatile fields must be marked 'mutable' and cannot be thread-static")
+            (Error 823, Line 10, Col 7, Line 10, Col 9, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
+            (Error 879, Line 10, Col 7, Line 10, Col 9, "Volatile fields must be marked 'mutable' and cannot be thread-static")
             (Error 823, Line 26, Col 17, Line 26, Col 18, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
-            (Error 879, Line 13, Col 5, Line 14, Col 19, "Volatile fields must be marked 'mutable' and cannot be thread-static")
-            (Error 879, Line 16, Col 5, Line 17, Col 20, "Volatile fields must be marked 'mutable' and cannot be thread-static")
-            (Error 879, Line 19, Col 5, Line 20, Col 11, "Volatile fields must be marked 'mutable' and cannot be thread-static")
-            (Error 879, Line 22, Col 5, Line 23, Col 13, "Volatile fields must be marked 'mutable' and cannot be thread-static")
+            (Error 879, Line 14, Col 16, Line 14, Col 19, "Volatile fields must be marked 'mutable' and cannot be thread-static")
+            (Error 879, Line 17, Col 16, Line 17, Col 17, "Volatile fields must be marked 'mutable' and cannot be thread-static")
+            (Error 879, Line 20, Col 9, Line 20, Col 11, "Volatile fields must be marked 'mutable' and cannot be thread-static")
+            (Error 879, Line 23, Col 9, Line 23, Col 10, "Volatile fields must be marked 'mutable' and cannot be thread-static")
         ]
     
     // SOURCE=E_VolatileField.fs	# E_VolatileField.fs
@@ -820,16 +822,16 @@ type InterruptibleLazy<'T> private (valueFactory: unit -> 'T) =
         |> verifyCompile
         |> shouldFail
         |> withDiagnostics [
-            (Error 823, Line 3, Col 3, Line 4, Col 16, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
-            (Error 823, Line 6, Col 3, Line 7, Col 14, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
-            (Error 879, Line 6, Col 3, Line 7, Col 14, "Volatile fields must be marked 'mutable' and cannot be thread-static")
-            (Error 823, Line 9, Col 3, Line 10, Col 9, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
-            (Error 879, Line 9, Col 3, Line 10, Col 9, "Volatile fields must be marked 'mutable' and cannot be thread-static")
+            (Error 823, Line 4, Col 15, Line 4, Col 16, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
+            (Error 823, Line 7, Col 11, Line 7, Col 12, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
+            (Error 879, Line 7, Col 11, Line 7, Col 12, "Volatile fields must be marked 'mutable' and cannot be thread-static")
+            (Error 823, Line 10, Col 7, Line 10, Col 9, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
+            (Error 879, Line 10, Col 7, Line 10, Col 9, "Volatile fields must be marked 'mutable' and cannot be thread-static")
             (Error 823, Line 26, Col 17, Line 26, Col 18, "The 'VolatileField' attribute may only be used on 'let' bindings in classes")
-            (Error 879, Line 13, Col 5, Line 14, Col 19, "Volatile fields must be marked 'mutable' and cannot be thread-static")
-            (Error 879, Line 16, Col 5, Line 17, Col 20, "Volatile fields must be marked 'mutable' and cannot be thread-static")
-            (Error 879, Line 19, Col 5, Line 20, Col 11, "Volatile fields must be marked 'mutable' and cannot be thread-static")
-            (Error 879, Line 22, Col 5, Line 23, Col 13, "Volatile fields must be marked 'mutable' and cannot be thread-static")
+            (Error 879, Line 14, Col 16, Line 14, Col 19, "Volatile fields must be marked 'mutable' and cannot be thread-static")
+            (Error 879, Line 17, Col 16, Line 17, Col 17, "Volatile fields must be marked 'mutable' and cannot be thread-static")
+            (Error 879, Line 20, Col 9, Line 20, Col 11, "Volatile fields must be marked 'mutable' and cannot be thread-static")
+            (Error 879, Line 23, Col 9, Line 23, Col 10, "Volatile fields must be marked 'mutable' and cannot be thread-static")
         ]
         
     // SOURCE= VolatileField01.fs	# VolatileField01.fs
@@ -873,7 +875,7 @@ type InterruptibleLazy<'T> private (valueFactory: unit -> 'T) =
             (Error 948, Line 8, Col 6, Line 8, Col 24, "Interface types cannot be sealed")
             (Error 942, Line 14, Col 6, Line 14, Col 33, "Delegate types are always sealed")
         ]
-        
+
     // SOURCE= E_StructLayout01.fs	# E_StructLayout01.fs
     [<Theory; Directory(__SOURCE_DIRECTORY__, Includes=[|"E_StructLayout01.fs"|])>]
     let ``E_StructLayout01 9.0`` compilation =
@@ -888,7 +890,7 @@ type InterruptibleLazy<'T> private (valueFactory: unit -> 'T) =
             (Error 937, Line 14, Col 6, Line 14, Col 8, "Only structs and classes without primary constructors may be given the 'StructLayout' attribute")
             (Error 937, Line 17, Col 6, Line 17, Col 8, "Only structs and classes without primary constructors may be given the 'StructLayout' attribute")
         ]
-    
+
     // SOURCE=E_StructLayout01.fs	# E_StructLayout01.fs
     [<Theory; Directory(__SOURCE_DIRECTORY__, Includes=[|"E_StructLayout01.fs"|])>]
     let ``E_StructLayout01 preview`` compilation =
@@ -903,3 +905,31 @@ type InterruptibleLazy<'T> private (valueFactory: unit -> 'T) =
             (Error 937, Line 14, Col 6, Line 14, Col 8, "Only structs and classes without primary constructors may be given the 'StructLayout' attribute")
             (Error 937, Line 17, Col 6, Line 17, Col 8, "Only structs and classes without primary constructors may be given the 'StructLayout' attribute")
         ]
+
+#if NETCOREAPP
+    let missingConstructorRepro =
+        """
+open System.Text.Json.Serialization
+
+type internal ApplicationTenantJsonDerivedTypeAttribute () =
+    inherit JsonDerivedTypeAttribute (typeof<ApplicationTenant>, "a")
+
+// --------------------------------------------------------------------------
+// IMPORTANT: Read ReadMe before modifying this сlass and any referenced types
+// --------------------------------------------------------------------------
+and [<ApplicationTenantJsonDerivedType>]
+    ApplicationTenant
+    [<JsonConstructor>] (id, name, loginProvider, allowedDomains, authorizedTenants, properties) =
+
+    member _.Id = ""
+        """
+
+    [<InlineData("8.0")>]
+    [<InlineData("preview")>]
+    [<Theory>]
+    let ``Regression for - F# 9 compiler cannot find constructor for attribute`` langVersion =
+        FSharp missingConstructorRepro
+        |> withLangVersion langVersion
+        |> verifyCompile
+        |> shouldSucceed
+#endif
