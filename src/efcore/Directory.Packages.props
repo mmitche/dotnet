@@ -7,6 +7,8 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <CentralPackageVersionOverrideEnabled>true</CentralPackageVersionOverrideEnabled>
+    <!-- Do not warn for missing source mappings -->
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <!-- core dependencies-->
@@ -34,7 +36,7 @@
     <PackageVersion Include="Microsoft.DotNet.Build.Tasks.Templating" Version="$(MicrosoftDotNetBuildTasksTemplatingVersion)" />
 
     <!-- Azure SDK for .NET dependencies -->
-    <PackageVersion Include="Microsoft.Azure.Cosmos" Version="3.43.0" />
+    <PackageVersion Include="Microsoft.Azure.Cosmos" Version="3.43.1" />
 
     <!-- SQL Server dependencies -->
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.2.2" />
