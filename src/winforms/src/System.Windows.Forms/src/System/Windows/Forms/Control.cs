@@ -431,7 +431,7 @@ public unsafe partial class Control :
             if (!Properties.TryGetValue(s_accessibilityProperty, out AccessibleObject? accessibleObject))
             {
                 accessibleObject = CreateAccessibilityInstance().OrThrowIfNull();
-                Properties.SetObject(s_accessibilityProperty, accessibleObject);
+                Properties.AddValue(s_accessibilityProperty, accessibleObject);
             }
 
             Debug.Assert(accessibleObject is not null, "Failed to create accessibility object");
@@ -450,7 +450,7 @@ public unsafe partial class Control :
             if (!Properties.TryGetValue(s_ncAccessibilityProperty, out AccessibleObject? ncAccessibleObject))
             {
                 ncAccessibleObject = new ControlAccessibleObject(this, (int)OBJECT_IDENTIFIER.OBJID_WINDOW);
-                Properties.SetObject(s_ncAccessibilityProperty, ncAccessibleObject);
+                Properties.AddValue(s_ncAccessibilityProperty, ncAccessibleObject);
             }
 
             Debug.Assert(ncAccessibleObject is not null, "Failed to create NON-CLIENT accessibility object");
@@ -564,11 +564,7 @@ public unsafe partial class Control :
     {
         get
         {
-            AmbientProperties? ambientProperties = (AmbientProperties?)Properties.GetObject(
-                s_ambientPropertiesServiceProperty,
-                out bool found);
-
-            if (found)
+            if (Properties.TryGetValueOrNull(s_ambientPropertiesServiceProperty, out AmbientProperties? ambientProperties))
             {
                 return ambientProperties;
             }
@@ -584,7 +580,7 @@ public unsafe partial class Control :
 
             if (ambientProperties is not null)
             {
-                Properties.SetObject(s_ambientPropertiesServiceProperty, ambientProperties);
+                Properties.AddValue(s_ambientPropertiesServiceProperty, ambientProperties);
             }
 
             return ambientProperties;
@@ -661,16 +657,8 @@ public unsafe partial class Control :
     [DefaultValue(typeof(Point), "0, 0")]
     public virtual Point AutoScrollOffset
     {
-        get => Properties.TryGetObject(s_autoScrollOffsetProperty, out Point point)
-            ? point
-            : Point.Empty;
-        set
-        {
-            if (AutoScrollOffset != value)
-            {
-                Properties.SetObject(s_autoScrollOffsetProperty, value);
-            }
-        }
+        get => Properties.GetValueOrDefault(s_autoScrollOffsetProperty, Point.Empty);
+        set => Properties.AddOrRemoveValue(s_autoScrollOffsetProperty, value, defaultValue: Point.Empty);
     }
 
     protected void SetAutoSizeMode(AutoSizeMode mode) => CommonProperties.SetAutoSizeMode(this, mode);
@@ -750,7 +738,7 @@ public unsafe partial class Control :
     [Bindable(true)]
     public virtual object? DataContext
     {
-        get => Properties.TryGetObject(s_dataContextProperty, out object? value)
+        get => Properties.TryGetValue(s_dataContextProperty, out object? value)
             ? value
             : ParentInternal?.DataContext;
         set
@@ -893,9 +881,7 @@ public unsafe partial class Control :
     [SRDescription(nameof(SR.ControlBackgroundImageLayoutDescr))]
     public virtual ImageLayout BackgroundImageLayout
     {
-        get => Properties.TryGetObject(s_backgroundImageLayoutProperty, out ImageLayout imageLayout)
-            ? imageLayout
-            : ImageLayout.Tile;
+        get => Properties.GetValueOrDefault(s_backgroundImageLayoutProperty, ImageLayout.Tile);
         set
         {
             if (BackgroundImageLayout == value)
@@ -903,7 +889,6 @@ public unsafe partial class Control :
                 return;
             }
 
-            // Valid values are 0x0 to 0x4
             SourceGenerated.EnumValidator.Validate(value);
 
             // Check if the value is either center, stretch or zoom;
@@ -918,7 +903,7 @@ public unsafe partial class Control :
                 }
             }
 
-            Properties.SetObject(s_backgroundImageLayoutProperty, value);
+            Properties.AddOrRemoveValue(s_backgroundImageLayoutProperty, value, defaultValue: ImageLayout.Tile);
             OnBackgroundImageLayoutChanged(EventArgs.Empty);
         }
     }
@@ -939,7 +924,7 @@ public unsafe partial class Control :
         {
             if (value != BecomingActiveControl)
             {
-                Application.ThreadContext.FromCurrent().ActivatingControl = (value) ? this : null;
+                Application.ThreadContext.FromCurrent().ActivatingControl = value ? this : null;
                 SetExtendedState(ExtendedStates.BecomingActiveControl, value);
             }
         }
@@ -1576,8 +1561,7 @@ public unsafe partial class Control :
 
             if (!Properties.TryGetValue(s_bindingsProperty, out ControlBindingsCollection? bindings))
             {
-                bindings = new ControlBindingsCollection(this);
-                Properties.SetObject(s_bindingsProperty, bindings);
+                bindings = Properties.AddValue(s_bindingsProperty, new ControlBindingsCollection(this));
             }
 
             return bindings;
@@ -1865,14 +1849,16 @@ public unsafe partial class Control :
         [param: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ActiveXFontMarshaler))]
         set
         {
-            if (Equals((Font?)Properties.GetObject(s_fontProperty), value))
+            Font? previous = Properties.GetValueOrDefault<Font>(s_fontProperty);
+            if (Equals(previous, value))
             {
-                // Explicitly set font for this control is unchanged, do nothing.
+                // Explicitly set font for this control is unchanged, do nothing. Note that this is not
+                // reference equality, this is property value equality.
                 return;
             }
 
             Font currentFont = Font;
-            Properties.SetObject(s_fontProperty, value);
+            Properties.AddOrRemoveValue(s_fontProperty, value);
 
             // Clear the current cached HFONT, if any.
             DisposeFontHandle();
@@ -1974,8 +1960,7 @@ public unsafe partial class Control :
             {
                 if (!Properties.TryGetValue(s_fontHandleWrapperProperty, out FontHandleWrapper? fontHandle))
                 {
-                    fontHandle = new FontHandleWrapper(font);
-                    Properties.AddValue(s_fontHandleWrapperProperty, fontHandle);
+                    fontHandle = Properties.AddValue(s_fontHandleWrapperProperty, new FontHandleWrapper(font));
                 }
 
                 return fontHandle.Handle;
@@ -2001,10 +1986,7 @@ public unsafe partial class Control :
 
                 if (fontHandle is null)
                 {
-                    font = ambientFont;
-                    fontHandle = new FontHandleWrapper(font);
-
-                    Properties.AddValue(s_fontHandleWrapperProperty, fontHandle);
+                    fontHandle = Properties.AddValue(s_fontHandleWrapperProperty, new FontHandleWrapper(ambientFont));
                 }
 
                 return fontHandle.Handle;
@@ -2026,9 +2008,7 @@ public unsafe partial class Control :
 
             if (TryGetExplicitlySetFont(out Font? font))
             {
-                fontHeight = font.Height;
-                Properties.AddValue(s_fontHeightProperty, fontHeight);
-                return fontHeight;
+                return Properties.AddValue(s_fontHeightProperty, font.Height);
             }
 
             // Ask the parent if it has the font height.
@@ -2663,30 +2643,15 @@ public unsafe partial class Control :
     {
         get
         {
-            string? name = (string?)Properties.GetObject(s_namePropertyProperty);
-            if (string.IsNullOrEmpty(name))
+            string? name = Properties.GetValueOrDefault<string>(s_namePropertyProperty);
+            if (string.IsNullOrEmpty(name) && Site is not null)
             {
-                if (Site is not null)
-                {
-                    name = Site.Name;
-                }
-
-                name ??= string.Empty;
+                name = Site.Name;
             }
 
-            return name;
+            return name ?? string.Empty;
         }
-        set
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                Properties.SetObject(s_namePropertyProperty, null);
-            }
-            else
-            {
-                Properties.SetObject(s_namePropertyProperty, value);
-            }
-        }
+        set => Properties.AddOrRemoveString(s_namePropertyProperty, value);
     }
 
     /// <summary>
@@ -2798,33 +2763,32 @@ public unsafe partial class Control :
     [SRDescription(nameof(SR.ControlRegionDescr))]
     public Region? Region
     {
-        get => (Region?)Properties.GetObject(s_regionProperty);
+        get => Properties.GetValueOrDefault<Region>(s_regionProperty);
         set
         {
-            Region? oldRegion = Region;
+            Region? oldRegion = SetRegionInternal(value);
             if (oldRegion != value)
             {
                 oldRegion?.Dispose();
-                SetRegion(value);
                 OnRegionChanged(EventArgs.Empty);
             }
         }
     }
 
-    internal void SetRegion(Region? region)
+    private Region? SetRegionInternal(Region? region)
     {
-        Properties.SetObject(s_regionProperty, region);
+        Region? oldRegion = Properties.AddOrRemoveValue(s_regionProperty, region);
 
-        if (!IsHandleCreated)
+        if (oldRegion == region || !IsHandleCreated)
         {
             // We'll get called when OnHandleCreated runs.
-            return;
+            return oldRegion;
         }
 
         if (region is null)
         {
             PInvoke.SetWindowRgn(this, default, PInvoke.IsWindowVisible(this));
-            return;
+            return oldRegion;
         }
 
         // If we're an ActiveX control, clone the region so it can potentially be modified
@@ -2836,6 +2800,8 @@ public unsafe partial class Control :
             // Success, the window now owns the region
             regionHandle.RelinquishOwnership();
         }
+
+        return oldRegion;
     }
 
     /// <summary>
@@ -3061,7 +3027,7 @@ public unsafe partial class Control :
                     oldCursor = Cursor;
                 }
 
-                Properties.SetObject(s_ambientPropertiesServiceProperty, newAmbients);
+                Properties.AddValue(s_ambientPropertiesServiceProperty, newAmbients);
                 base.Site = value;
 
                 if (checkFont && !oldFont!.Equals(Font))
@@ -3197,8 +3163,8 @@ public unsafe partial class Control :
     [TypeConverter(typeof(StringConverter))]
     public object? Tag
     {
-        get => Properties.GetObject(s_userDataProperty);
-        set => Properties.SetObject(s_userDataProperty, value);
+        get => Properties.GetValueOrDefault<object>(s_userDataProperty);
+        set => Properties.AddOrRemoveValue(s_userDataProperty, value);
     }
 
     /// <summary>
@@ -3234,7 +3200,7 @@ public unsafe partial class Control :
             {
                 for (Control? control = this; control is not null; control = control.ParentInternal)
                 {
-                    if (control.IsActiveX && control.Properties.GetObject(s_activeXImplProperty) is ActiveXImpl activeX)
+                    if (control.IsActiveX && control.Properties.TryGetValue(s_activeXImplProperty, out ActiveXImpl? activeX))
                     {
                         activeX.UpdateAccelTable();
                         break;
@@ -3507,11 +3473,10 @@ public unsafe partial class Control :
     {
         get
         {
-            ControlVersionInfo? info = (ControlVersionInfo?)Properties.GetObject(s_controlVersionInfoProperty);
-            if (info is null)
+            if (!Properties.TryGetValue(s_controlVersionInfoProperty, out ControlVersionInfo? info))
             {
-                info = new ControlVersionInfo(this);
-                Properties.SetObject(s_controlVersionInfoProperty, info);
+                info = new(this);
+                Properties.AddValue(s_controlVersionInfoProperty, info);
             }
 
             return info;
@@ -4822,7 +4787,7 @@ public unsafe partial class Control :
                 Properties.RemoveValue(s_ncAccessibilityProperty);
 
                 DisposeAxControls();
-                ((ActiveXImpl?)Properties.GetObject(s_activeXImplProperty))?.Dispose();
+                Properties.GetValueOrDefault<ActiveXImpl>(s_activeXImplProperty)?.Dispose();
 
                 ResetBindings();
 
@@ -6262,22 +6227,12 @@ public unsafe partial class Control :
     }
 
     /// <summary>
-    ///  Determines whether the font is set.
+    ///  Determines whether the font is explicitly set.
     /// </summary>
-    internal bool IsFontSet()
-    {
-        if (Properties.ContainsObjectThatIsNotNull(s_fontProperty))
-        {
-            return true;
-        }
-
-        return false;
-    }
+    internal bool IsFontSet() => Properties.ContainsKey(s_fontProperty);
 
     /// <summary>
-    ///  WARNING! The meaning of this method is not what it appears.
-    ///  The method returns true if "descendant" (the argument) is a descendant
-    ///  of "this". I'd expect it to be the other way around, but oh well too late.
+    ///  Returns <see langword="true"/> if <paramref name="descendant"/> is a descendant of this <see cref="Control"/>.
     /// </summary>
     internal bool IsDescendant(Control? descendant)
     {
@@ -6296,7 +6251,7 @@ public unsafe partial class Control :
     }
 
     /// <summary>
-    ///  This Function will return a Boolean as to whether the Key value passed in is Locked...
+    ///  Determines whether the CAPS LOCK, NUM LOCK, or SCROLL LOCK key is in effect.
     /// </summary>
     public static bool IsKeyLocked(Keys keyVal)
     {
@@ -7385,7 +7340,7 @@ public unsafe partial class Control :
             Region? region = Region;
             if (region is not null)
             {
-                SetRegion(region);
+                SetRegionInternal(region);
             }
 
             // Cache Handle in a local before asserting so we minimize code running under the Assert.
@@ -10619,10 +10574,7 @@ public unsafe partial class Control :
     ///  Returns true if the font should be persisted in code gen.
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    internal virtual bool ShouldSerializeFont()
-    {
-        return Properties.ContainsObjectThatIsNotNull(s_fontProperty);
-    }
+    internal virtual bool ShouldSerializeFont() => Properties.ContainsKey(s_fontProperty);
 
     /// <summary>
     ///  Returns true if the RightToLeft should be persisted in code gen.
@@ -10814,11 +10766,8 @@ public unsafe partial class Control :
     /// <summary>
     ///  Retrieve Font from property bag. This is the Font that was explicitly set on control by the application.
     /// </summary>
-    private protected bool TryGetExplicitlySetFont([NotNullWhen(true)] out Font? font)
-    {
-        font = (Font?)Properties.GetObject(s_fontProperty);
-        return font is not null;
-    }
+    private protected bool TryGetExplicitlySetFont([NotNullWhen(true)] out Font? font) =>
+        Properties.TryGetValue(s_fontProperty, out font);
 
     /// <summary>
     ///  Sets the scaled font value with the option to control whether <see cref="OnFontChanged(EventArgs)"/> event is raised.
@@ -10827,8 +10776,10 @@ public unsafe partial class Control :
     /// <param name="raiseOnFontChangedEvent">Indicates whether to raise <see cref="OnFontChanged(EventArgs)"/> event.</param>
     private protected void SetScaledFont(Font scaledFont, bool raiseOnFontChangedEvent = true)
     {
+        Debug.Assert(scaledFont is not null);
+
         // Store new scaled value
-        Properties.SetObject(s_fontProperty, scaledFont);
+        Properties.AddOrRemoveValue(s_fontProperty, scaledFont);
 
         // Dispose old FontHandle.
         DisposeFontHandle();
@@ -11229,33 +11180,31 @@ public unsafe partial class Control :
     /// </summary>
     internal void WmContextMenu(ref Message m, Control sourceControl)
     {
-        var contextMenuStrip = (ContextMenuStrip?)Properties.GetObject(s_contextMenuStripProperty);
-        if (contextMenuStrip is not null)
+        if (!Properties.TryGetValue(s_contextMenuStripProperty, out ContextMenuStrip? contextMenuStrip))
         {
-            int x = PARAM.SignedLOWORD(m.LParamInternal);
-            int y = PARAM.SignedHIWORD(m.LParamInternal);
-            Point client;
-            bool keyboardActivated = false;
+            DefWndProc(ref m);
+            return;
+        }
 
-            // lparam will be exactly -1 when the user invokes the context menu with the keyboard.
-            if (m.LParamInternal == -1)
-            {
-                keyboardActivated = true;
-                client = new Point(Width / 2, Height / 2);
-            }
-            else
-            {
-                client = PointToClient(new Point(x, y));
-            }
+        int x = PARAM.SignedLOWORD(m.LParamInternal);
+        int y = PARAM.SignedHIWORD(m.LParamInternal);
+        Point client;
+        bool keyboardActivated = false;
 
-            if (ClientRectangle.Contains(client))
-            {
-                contextMenuStrip.ShowInternal(sourceControl, client, keyboardActivated);
-            }
-            else
-            {
-                DefWndProc(ref m);
-            }
+        // lparam will be -1 when the user invokes the context menu with the keyboard.
+        if (m.LParamInternal == -1)
+        {
+            keyboardActivated = true;
+            client = new Point(Width / 2, Height / 2);
+        }
+        else
+        {
+            client = PointToClient(new Point(x, y));
+        }
+
+        if (ClientRectangle.Contains(client))
+        {
+            contextMenuStrip.ShowInternal(sourceControl, client, keyboardActivated);
         }
         else
         {

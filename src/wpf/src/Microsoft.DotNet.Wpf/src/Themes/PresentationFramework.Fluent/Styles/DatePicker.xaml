@@ -83,7 +83,6 @@
         <Setter Property="Background" Value="{DynamicResource DatePickerBackground}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
         <Setter Property="BorderThickness" Value="{StaticResource DatePickerBorderThemeThickness}" />
-        <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -103,10 +102,7 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <Grid
-                            Grid.Row="0"
-                            HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
-                            VerticalAlignment="{TemplateBinding VerticalAlignment}">
+                        <Grid Grid.Row="0">
                             <Border
                                 x:Name="ContentBorder"
                                 MinWidth="{TemplateBinding MinWidth}"
