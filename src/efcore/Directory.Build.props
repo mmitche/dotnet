@@ -52,7 +52,7 @@
 
   <!-- HACK: Work around #15093 -->
   <PropertyGroup>
-    <NoWarn>$(NoWarn.Replace(';1591', ''))</NoWarn>
+    <NoWarn>$(NoWarn.Replace(';1591', ''));NU1903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

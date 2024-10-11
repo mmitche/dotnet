@@ -15,6 +15,7 @@
 
     <CleanInnerSourceBuildRepoRoot Condition="'$(CleanInnerSourceBuildRepoRoot)' == ''">true</CleanInnerSourceBuildRepoRoot>
 
+    <!-- It seems pretty odd that this variable is set here. It seems like it should only come in from outside the repo build. -->
     <FullAssemblySigningSupported Condition="'$(FullAssemblySigningSupported)' == ''">false</FullAssemblySigningSupported>
 
     <_DirSeparatorEscapedCharForExecArg Condition="'$(OS)' == 'Windows_NT'">\</_DirSeparatorEscapedCharForExecArg>
