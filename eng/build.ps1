@@ -67,7 +67,11 @@ if ($test) {
 }
 
 if ($sign) {
-  $argument += "/p:Sign=true"
+  $arguments += "/p:Sign=true"
+  # Force dry run signing for now. In typical VMR builds, the official build ID is set for each repo, which
+  # tells the signing infra that it should expect to see signed bits. This won't be the case in CI builds,
+  # and won't be the case for official builds until more of the real signing infra is functional.
+  properties+=( "/p:ForceDryRunSigning=true" )
 }
 
 if ($buildRepoTests) {
