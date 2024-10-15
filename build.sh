@@ -21,6 +21,7 @@ usage()
   echo "  --clean                         Clean the solution"
   echo "  --help                          Print help and exit (short: -h)"
   echo "  --test                          Run tests (short: -t)"
+  echo "  --sign                          Sign the build."
   echo ""
 
   echo "Source-only settings:"
@@ -127,6 +128,9 @@ while [[ $# > 0 ]]; do
       ;;
     -test|-t)
       test=true
+      ;;
+    -sign)
+      properties+=( "/p:Sign=true" )
       ;;
 
     # Source-only settings
