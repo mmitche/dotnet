@@ -151,6 +151,7 @@ jobs:
   variables:
   - ${{ if eq(variables['System.TeamProject'], 'internal') }}:
     - group: AzureDevOps-Artifact-Feeds-Pats
+    - group: DotNet-VSTS-Infra-Access
   - ${{ if and(not(parameters.isBuiltFromVmr), eq(variables['System.TeamProject'], 'internal'), not(startswith(parameters.vmrBranch, 'internal/release/')), ne(variables['Build.Reason'], 'PullRequest')) }}:
     - group: DotNetBot-GitHub
   - ${{ else }}:
@@ -307,7 +308,7 @@ jobs:
       parameters:
         enableMicrobuild: true
         enableMicrobuildForMacAndLinux: true
-  
+
   - ${{ if eq(parameters.targetOS, 'windows') }}:
     # Node 20.x is a toolset dependency to build aspnetcore
     # Keep in sync with aspnetcore: https://github.com/dotnet/aspnetcore/blob/7d5309210d8f7bae8fa074da495e9d009d67f1b4/.azure/pipelines/ci.yml#L719-L722
@@ -325,6 +326,7 @@ jobs:
         if /I '${{ parameters.sign }}'=='True' if /I NOT '${{ parameters.buildSourceOnly }}'=='True' set extraBuildArguments=%extraBuildArguments% -sign %signArgs%
 
         if /I '${{ parameters.useDevVersions }}'=='True' set extraBuildArguments=%extraBuildArguments% -dev
+        if /I NOT '${{ parameters.useDevVersions }}'=='True' set extraBuildArguments=%extraBuildArguments% /p:IBCDropAccessToken=$(dn-bot-devdiv-drop-rw-code-rw)
         set extraBuildProperties=
         if not [${{ parameters.buildPass }}]==[] set extraBuildProperties=%extraBuildProperties% /p:DotNetBuildPass=${{ parameters.buildPass }}
         call build.cmd -ci -cleanWhileBuilding -prepareMachine %extraBuildArguments% -c ${{ parameters.configuration }} /p:TargetOS=${{ parameters.targetOS }} /p:TargetArchitecture=${{ parameters.targetArchitecture }} /p:VerticalName=$(Agent.JobName) /p:ArtifactsStagingDir=$(artifactsStagingDir) %extraBuildProperties% ${{ parameters.extraProperties }}
@@ -411,6 +413,8 @@ jobs:
 
         if [[ '${{ parameters.useDevVersions }}' == 'True' ]]; then
           customBuildArgs="$customBuildArgs --dev"
+        else
+          extraBuildProperties="$extraBuildProperties /p:IBCDropAccessToken=$(dn-bot-devdiv-drop-rw-code-rw)"
         fi
 
         if [[ '${{ parameters.sign }}' == 'True' ]] && [[ '${{ parameters.buildSourceOnly }}' != 'True' ]]; then
