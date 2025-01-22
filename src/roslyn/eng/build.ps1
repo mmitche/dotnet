@@ -221,6 +221,13 @@ function Process-Arguments() {
   }
 }
 
+function RestoreInternalTooling() {
+  # HACK - overwrite RestoreConfigFile right now
+  $internalToolingProject = Join-Path $RepoRoot 'eng/common/internal/Tools.csproj'
+  $restoreConfigFile = Join-Path $RepoRoot 'eng/common/internal/NuGet.config'
+  MSBuild $internalToolingProject /t:Restore /p:NuGetInteractive=true /bl:C:\scratch\InternalToolingRestore.binlog /p:RestoreConfigFile=$restoreConfigFile
+}
+
 function BuildSolution() {
   $solution = "Roslyn.sln"
 
@@ -239,6 +246,8 @@ function BuildSolution() {
 
   $projects = Join-Path $RepoRoot $solution
   $toolsetBuildProj = InitializeToolset
+
+  RestoreInternalTooling
 
   $ibcDropName = GetIbcDropName
 
@@ -333,8 +342,12 @@ function GetIbcDropName() {
         return ""
     }
 
+    # If here, ensure that we have the internal tooling restored before attempting to load the powershell module
+
+
     # Bring in the ibc tools
     $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net472"
+    Write-Host "Importing module $(Join-Path $packagePath "Optimization.Data.PowerShell.dll")"
     Import-Module (Join-Path $packagePath "Optimization.Data.PowerShell.dll")
 
     # Find the matching drop
