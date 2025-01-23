@@ -73,6 +73,7 @@ param (
     [switch]$compressAllMetadata,
     [switch]$buildnorealsig = $true,
     [switch]$verifypackageshipstatus = $false,
+    [string]$restoreConfigFile,
     [parameter(ValueFromRemainingArguments = $true)][string[]]$properties)
 
 Set-StrictMode -version 2.0
@@ -138,6 +139,7 @@ function Print-Usage() {
     Write-Host "  -compressAllMetadata          Build product with compressed metadata"
     Write-Host "  -buildnorealsig               Build product with realsig- (default use realsig+, where necessary)"
     Write-Host "  -verifypackageshipstatus      Verify whether the packages we are building have already shipped to nuget"
+    Write-Host "  -restoreconfigfile            Override the nuget.config file used to restore the repository"
     Write-Host ""
     Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -283,6 +285,8 @@ function BuildSolution([string] $solutionName, $nopack) {
 
     $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "Build.$solutionName.binlog") } else { "" }
 
+    $restoreConfigFileArg = if ($restoreConfigFile) { "/p:RestoreConfigFile=$restoreConfigFile" } else { '' }
+
     $projects = Join-Path $RepoRoot  $solutionName
     $officialBuildId = if ($official) { $env:BUILD_BUILDNUMBER } else { "" }
     $toolsetBuildProj = InitializeToolset
@@ -302,6 +306,7 @@ function BuildSolution([string] $solutionName, $nopack) {
 
     MSBuild $toolsetBuildProj `
         $bl `
+        $restoreConfigFileArg `
         /p:Configuration=$configuration `
         /p:Projects=$projects `
         /p:RepoRoot=$RepoRoot `

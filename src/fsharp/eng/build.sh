@@ -38,6 +38,7 @@ usage()
   echo "  --sourceBuild                  Simulate building for source-build"
   echo "  --buildnorealsig               Build product with realsig- (default use realsig+ where necessary)"
   echo "  --tfm                          Override the default target framework"
+  echo "  --restoreconfigfile            Override the nuget.config file used to restore the repository"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -75,6 +76,7 @@ prepare_machine=false
 source_build=false
 buildnorealsig=true
 properties=""
+restore_config_file=""
 
 docker=false
 args=""
@@ -171,6 +173,10 @@ while [[ $# > 0 ]]; do
       tfm=$2
       shift
       ;;
+    --restoreconfigfile)
+      restore_config_file=$2
+      shift
+      ;;
     /p:*)
       properties="$properties $1"
       ;;
@@ -237,6 +243,11 @@ function BuildSolution {
     bl="/bl:\"$log_dir/Build.binlog\""
   fi
 
+  local restoreConfigFileArg=""
+  if [[ "$restore_config_file" == true ]]; then
+    restoreConfigFileArg="/p:\"RestoreConfigFile=$restore_config_file\""
+  fi
+
   local projects="$repo_root/FSharp.sln"
 
   echo "$projects:"
@@ -285,7 +296,7 @@ function BuildSolution {
     fi
 
     BuildMessage="Error building tools"
-    local args=" publish $repo_root/proto.proj $blrestore $bltools /p:Configuration=Proto $source_build_args $properties"
+    local args=" publish $repo_root/proto.proj $blrestore $bltools $restoreConfigFileArg /p:Configuration=Proto $source_build_args $properties"
     echo $args
     "$DOTNET_INSTALL_DIR/dotnet" $args  #$args || exit $?
   fi
@@ -295,6 +306,7 @@ function BuildSolution {
     BuildMessage="Error building solution"
     MSBuild $toolset_build_proj \
       $bl \
+      $restoreConfigFileArg \
       /p:Configuration=$configuration \
       /p:Projects="$projects" \
       /p:RepoRoot="$repo_root" \

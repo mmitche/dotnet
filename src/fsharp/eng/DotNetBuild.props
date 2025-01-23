@@ -31,7 +31,7 @@
     <PropertyGroup>
       <SourceBuildBootstrapTfmArg Condition="$(SourceBuildBootstrapTfm) != ''">--tfm $(SourceBuildBootstrapTfm)</SourceBuildBootstrapTfmArg>
       <DotNetBuildUseMonoRuntime Condition="'$(DotNetBuildUseMonoRuntime)' == ''">false</DotNetBuildUseMonoRuntime>
-      <SourceBuildBootstrapRestoreConfigFileArg Condition="'$(RestoreConfigFile)' != ''" >/p:RestoreConfigFile=$(RestoreConfigFile)</SourceBuildBootstrapRestoreConfigFileArg>
+      <SourceBuildBootstrapRestoreConfigFileArg Condition="'$(RestoreConfigFile)' != ''" >--restoreconfigfile $(RestoreConfigFile)</SourceBuildBootstrapRestoreConfigFileArg>
     </PropertyGroup>
 
     <!-- this runs the source-build bootstrap path as described in https://github.com/dotnet/fsharp/blob/95df49e380ea8dbf33653fa4209f89dba29413f5/eng/build.sh#L247
