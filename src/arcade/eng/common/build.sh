@@ -10,38 +10,39 @@ set -e
 usage()
 {
   echo "Common settings:"
-  echo "  --configuration <value>    Build configuration: 'Debug' or 'Release' (short: -c)"
-  echo "  --verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic] (short: -v)"
-  echo "  --binaryLog                Create MSBuild binary log (short: -bl)"
-  echo "  --help                     Print help and exit (short: -h)"
+  echo "  --configuration <value>         Build configuration: 'Debug' or 'Release' (short: -c)"
+  echo "  --verbosity <value>             Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic] (short: -v)"
+  echo "  --binaryLog                     Create MSBuild binary log (short: -bl)"
+  echo "  --help                          Print help and exit (short: -h)"
   echo ""
 
   echo "Actions:"
-  echo "  --restore                  Restore dependencies (short: -r)"
-  echo "  --build                    Build solution (short: -b)"
-  echo "  --sourceBuild              Source-build the solution (short: -sb)"
-  echo "                             Will additionally trigger the following actions: --restore, --build, --pack"
-  echo "                             If --configuration is not set explicitly, will also set it to 'Release'"
-  echo "  --productBuild             Build the solution in the way it will be built in the full .NET product (VMR) build (short: -pb)"
-  echo "                             Will additionally trigger the following actions: --restore, --build, --pack"
-  echo "                             If --configuration is not set explicitly, will also set it to 'Release'"
-  echo "  --rebuild                  Rebuild solution"
-  echo "  --test                     Run all unit tests in the solution (short: -t)"
-  echo "  --integrationTest          Run all integration tests in the solution"
-  echo "  --performanceTest          Run all performance tests in the solution"
-  echo "  --pack                     Package build outputs into NuGet packages and Willow components"
-  echo "  --sign                     Sign build outputs"
-  echo "  --publish                  Publish artifacts (e.g. symbols)"
-  echo "  --clean                    Clean the solution"
+  echo "  --restore                       Restore dependencies (short: -r)"
+  echo "  --build                         Build solution (short: -b)"
+  echo "  --sourceBuild                   Source-build the solution (short: -sb)"
+  echo "                                  Will additionally trigger the following actions: --restore, --build, --pack"
+  echo "                                  If --configuration is not set explicitly, will also set it to 'Release'"
+  echo "  --productBuild                  Build the solution in the way it will be built in the full .NET product (VMR) build (short: -pb)"
+  echo "                                  Will additionally trigger the following actions: --restore, --build, --pack"
+  echo "                                  If --configuration is not set explicitly, will also set it to 'Release'"
+  echo "  --rebuild                       Rebuild solution"
+  echo "  --test                          Run all unit tests in the solution (short: -t)"
+  echo "  --integrationTest               Run all integration tests in the solution"
+  echo "  --performanceTest               Run all performance tests in the solution"
+  echo "  --pack                          Package build outputs into NuGet packages and Willow components"
+  echo "  --sign                          Sign build outputs"
+  echo "  --publish                       Publish artifacts (e.g. symbols)"
+  echo "  --clean                         Clean the solution"
   echo ""
 
   echo "Advanced settings:"
-  echo "  --projects <value>       Project or solution file(s) to build"
-  echo "  --ci                     Set when running on CI server"
-  echo "  --excludeCIBinarylog     Don't output binary log (short: -nobl)"
-  echo "  --prepareMachine         Prepare machine for CI run, clean up processes after build"
-  echo "  --nodeReuse <value>      Sets nodereuse msbuild parameter ('true' or 'false')"
-  echo "  --warnAsError <value>    Sets warnaserror msbuild parameter ('true' or 'false')"
+  echo "  --projects <value>              Project or solution file(s) to build"
+  echo "  --ci                            Set when running on CI server"
+  echo "  --excludeCIBinarylog            Don't output binary log (short: -nobl)"
+  echo "  --prepareMachine                Prepare machine for CI run, clean up processes after build"
+  echo "  --nodeReuse <value>             Sets nodereuse msbuild parameter ('true' or 'false')"
+  echo "  --warnAsError <value>           Sets warnaserror msbuild parameter ('true' or 'false')"
+  echo "  --restoreConfigFile <value>     Sets warnaserror msbuild parameter ('true' or 'false')"
   echo ""
   echo "Command line arguments not listed above are passed thru to msbuild."
   echo "Arguments can also be passed in with a single hyphen."
@@ -86,6 +87,7 @@ prepare_machine=false
 verbosity='minimal'
 runtime_source_feed=''
 runtime_source_feed_key=''
+restore_config_file=''
 
 properties=''
 while [[ $# > 0 ]]; do
@@ -177,8 +179,12 @@ while [[ $# > 0 ]]; do
       runtime_source_feed=$2
       shift
       ;;
-     -runtimesourcefeedkey)
+    -runtimesourcefeedkey)
       runtime_source_feed_key=$2
+      shift
+      ;;
+    -restoreconfigfile)
+      restore_config_file=$2
       shift
       ;;
     *)
@@ -224,8 +230,14 @@ function Build {
     bl="/bl:\"$log_dir/Build.binlog\""
   fi
 
+  local restoreConfigFileArg=""
+  if [[ "$restore_config_file" == true ]]; then
+    restoreConfigFileArg="/p:\"RestoreConfigFile=$restore_config_file\""
+  fi
+
   MSBuild $_InitializeToolset \
     $bl \
+    $restoreConfigFileArg \
     /p:Configuration=$configuration \
     /p:RepoRoot="$repo_root" \
     /p:Restore=$restore \

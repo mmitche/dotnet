@@ -54,7 +54,7 @@ warn_as_error=${warn_as_error:-true}
 use_installed_dotnet_cli=${use_installed_dotnet_cli:-true}
 
 # Enable repos to use a particular version of the on-line dotnet-install scripts.
-#    default URL: https://dotnet.microsoft.com/download/dotnet/scripts/v1/dotnet-install.sh
+#    default URL: https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh
 dotnetInstallScriptVersion=${dotnetInstallScriptVersion:-'v1'}
 
 # True to use global NuGet cache instead of restoring packages to repository-local directory.
@@ -295,7 +295,7 @@ function with_retries {
 function GetDotNetInstallScript {
   local root=$1
   local install_script="$root/dotnet-install.sh"
-  local install_script_url="https://raw.githubusercontent.com/dotnet/install-scripts/4b17227b30fbbad567d4d4fba17c59da51bc817b/src/dotnet-install.sh"
+  local install_script_url="https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh"
 
   if [[ ! -a "$install_script" ]]; then
     mkdir -p "$root"
@@ -403,8 +403,13 @@ function InitializeToolset {
     bl="/bl:$log_dir/ToolsetRestore.binlog"
   fi
 
+  local restoreConfigFileArg=""
+  if [[ "$restore_config_file" == true ]]; then
+    restoreConfigFileArg="/p:\"RestoreConfigFile=$restore_config_file\""
+  fi
+
   echo '<Project Sdk="Microsoft.DotNet.Arcade.Sdk"/>' > "$proj"
-  MSBuild-Core "$proj" $bl /t:__WriteToolsetLocation /clp:ErrorsOnly\;NoSummary /p:__ToolsetLocationOutputFile="$toolset_location_file"
+  MSBuild-Core "$proj" $bl $restoreConfigFileArg /t:__WriteToolsetLocation /clp:ErrorsOnly\;NoSummary /p:__ToolsetLocationOutputFile="$toolset_location_file"
 
   local toolset_build_proj=`cat "$toolset_location_file"`
 
