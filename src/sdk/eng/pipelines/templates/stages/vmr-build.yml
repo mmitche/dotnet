@@ -950,7 +950,6 @@ stages:
 
   - stage: VMR_Validation
     displayName: VMR Validation
-    dependsOn: VMR_Final_Join
     variables:
       - template: ../variables/vmr-build.yml
         parameters:
