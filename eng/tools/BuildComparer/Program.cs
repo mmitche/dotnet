@@ -1,188 +1,216 @@
 ﻿using Microsoft.DotNet.VersionTools.Automation;
+using Microsoft.DotNet.VersionTools.BuildManifest;
+using System.Net.Sockets;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using System.CommandLine;
+using System.CommandLine.Invocation;
+using System.Xml.Serialization;
 
-enum AssetType
+public enum AssetType
 {
     Blob,
     Package,
     Unknown
 }
 
-class AssetMapping
+public class AssetReport
 {
+    [XmlAttribute("IssueCount")]
+    public int IssueCount { get => AssetsWithIssues.Count; }
+
+    [XmlAttribute("TotalCount")]
+    public int TotalCount { get => AssetsWithIssues.Count + AssetsWithoutIssues.Count; }
+    public List<AssetMapping> AssetsWithIssues { get; set; }
+    public List<AssetMapping> AssetsWithoutIssues { get; set; }
+}
+public class AssetMapping
+{
+    [XmlAttribute("Id")]
     public string Id { get; set; }
 
+    [XmlAttribute("Type")]
     public AssetType AssetType { get; set; } = AssetType.Unknown;
+    [XmlIgnore]
     public bool DiffElementFound { get => DiffManifestElement != null; }
+    [XmlIgnore]
     public bool DiffFileFound { get => DiffFilePath != null; }
 
+    [XmlElement("DiffFile")]
     public string DiffFilePath { get; set; }
+    [XmlIgnore]
     public XElement DiffManifestElement { get; set; }
 
+    [XmlElement("BaseFile")]
     public string BaseBuildFilePath { get; set; }
+
+    [XmlIgnore]
     public XElement BaseBuildManifestElement
     {
         get; set;
     }
+
+    public List<Issue> Issues { get; set; } = new List<Issue>();
+}
+
+public enum IssueType
+{
+    MissingShipping,
+    MissingNonShipping,
+    MisclassifiedAsset,
+}
+
+public class Issue
+{
+    [XmlAttribute("Type")]
+    public IssueType IssueType { get; set; }
+    [XmlAttribute("Description")]
+    public string Description { get; set; }
 }
 
 class Program
 {
-    static void Main(string[] args)
+    static int Main(string[] args)
     {
-        if (args.Length != 3)
+        var vmrManifestPathArgument = new CliOption<string>("-vmrManifestPath")
         {
-            Console.WriteLine("Usage: Program <manifestPath> <assetBasePath> <outputFilePath>");
-            return;
-        }
-
-        string manifestPath = args[0];
-        string assetBasePath = args[1];
-        string outputFilePath = args[2];
-
-        // Load the XML file
-        XDocument vmrMergedManifestContent = XDocument.Load(manifestPath);
-
-        // Get all files in the assets folder, including subfolders
-        var allFiles = Directory.GetFiles(assetBasePath, "*", SearchOption.AllDirectories);
-
-        List<string> missingPackagesShipping = new List<string>();
-        List<string> missingPackagesNonShipping = new List<string>();
-        List<string> missingBlobsShipping = new List<string>();
-        List<string> missingBlobsNonShipping = new List<string>();
-        List<string> misclassifiedBlobsVmrShipping = new List<string>();
-        List<string> misclassifiedBlobsVmrNonShipping = new List<string>();
-
-        List<AssetMapping> assetMappings = new List<AssetMapping>();
-
-        // Walk the top-level directories of the asset base path, and find the MergedManifest under each
-        // one. The MergedManifest.xml contains the list of outputs produced by the repo.
-
-        foreach (var baseDirectory in Directory.GetDirectories(assetBasePath, "*", SearchOption.TopDirectoryOnly))
+            Description = "Path to the manifest file",
+            Required = true
+        };
+        var vmrAssetBasePathArgument = new CliOption<string>("-vmrAssetBasePath")
         {
-            // Find the merged manifest underneath this directory
-            // (e.g. <assetBasePath>/arcade/nonshipping/<version>>/MergedManifest.xml)
-
-            string repoMergedManifestPath = Directory.GetFiles(baseDirectory,
-                "MergedManifest.xml", SearchOption.AllDirectories)
-                .FirstOrDefault();
-
-            if (repoMergedManifestPath == null)
-            {
-                Console.WriteLine($"Failed to find merged manifest for {baseDirectory}");
-                continue;
-            }
-
-            var repoBuildMergeManifestContent = XDocument.Load(repoMergedManifestPath);
-            assetMappings.AddRange(MapFilesForManifest(vmrMergedManifestContent, baseDirectory, repoMergedManifestPath, repoBuildMergeManifestContent));
-        }
-
-        // Now that we have the asset mappings, we can check for missing, misclassified, or incorrect assets
-        EvaluatePackages(missingPackagesShipping, missingPackagesNonShipping, assetMappings);
-
-        /*foreach (var file in allFiles)
+            Description = "Path to the manifest file",
+            Required = true
+        };
+        var msftAssetBasePathArgument = new CliOption<string>("-msftAssetBasePath")
         {
-            bool foundMatchBlob = false;
+            Description = "Path to the asset base path",
+            Required = true
+        };
+        var outputFilePathArgument = new CliOption<string>("-reportPath")
+        {
+            Description = "Path to directory containing report files.",
+            Required = true
+        };
+        var rootCommand = new CliRootCommand(description: "Tool for comparing Microsoft builds with VMR builds.")
+        {
+            vmrManifestPathArgument,
+            vmrAssetBasePathArgument,
+            msftAssetBasePathArgument,
+            outputFilePathArgument
+        };
 
-            if (file.Contains("\\Packages\\", StringComparison.OrdinalIgnoreCase))
-            {
-                // Skip source build intermediates
-                if (file.Contains("SourceBuild.Intermediate"))
-                {
-                    continue;
-                }
+        rootCommand.Description = "Compares build manifests and outputs missing or misclassified assets.";
 
-                // Find the package in the VMR's merged manifest.
-                var nupkgInfo = nupkgInfoFactory.CreateNupkgInfo(file);
-                var matchingPackage = vmrMergedManifestContent.Descendants("Package")
-                    .FirstOrDefault(p => p.Attribute("Id")?.Value == nupkgInfo.Id);
+        bool compareResult = false;
+        rootCommand.SetAction(async (result) =>
+        {
+            var comparer = new Program(result.GetValue(vmrManifestPathArgument),
+                                       result.GetValue(vmrAssetBasePathArgument),
+                                       result.GetValue(msftAssetBasePathArgument),
+                                       result.GetValue(outputFilePathArgument));
+            compareResult = comparer.CompareBuilds();
+        });
 
-                if (matchingPackage == null)
-                {
-                    if (file.Contains("\\nonshipping\\"))
-                    {
-                        missingPackagesNonShipping.Add(file.Substring(assetBasePath.Length - 1));
-                    }
-                    else
-                    {
-                        missingPackagesShipping.Add(file.Substring(assetBasePath.Length - 1));
-                    }
-                }
-            }
+        rootCommand.Parse(args).Invoke();
 
-            if (!file.Contains("\\Packages\\", StringComparison.OrdinalIgnoreCase))
-            {
-                if (file.EndsWith("manifest.json") || file.EndsWith("release.json") || file.EndsWith("MergedManifest.xml") || file.Contains("wixpack"))
-                {
-                    continue;
-                }
-
-                foreach (var blob in vmrMergedManifestContent.Descendants("Blob"))
-                {
-                    string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
-                    string id = GetModifiedBlobPath(blob.Attribute("Id").Value);
-                    string repoOrigin = blob.Attribute("RepoOrigin")?.Value;
-                    string shippingExpected = blob.Attribute("DotNetReleaseShipping")?.Value == "true" ? "shipping" : "nonshipping";
-                    string shippingWrong = blob.Attribute("DotNetReleaseShipping").Value == "true" ? "nonshipping" : "shipping";
-
-                    string expectedLocation = $"{assetBasePath}/{repoOrigin}/{shippingExpected}/assets/{id}".Replace("\\", "/");
-                    expectedLocation = Regex.Replace(expectedLocation, "/d\\+", "\\d+");
-                    string unexpectedLocation = $"{assetBasePath}/{repoOrigin}/{shippingWrong}/assets/{id}".Replace("\\", "/");
-                    unexpectedLocation = Regex.Replace(unexpectedLocation, "/d\\+", "\\d+");
-
-                    string packageOnDisk = file.Replace("\\", "/");
-
-                    if (Regex.IsMatch(packageOnDisk, expectedLocation))
-                    {
-                        foundMatchBlob = true;
-                        break;
-                    }
-                    else if (Regex.IsMatch(packageOnDisk, unexpectedLocation))
-                    {
-                        if (blob.Attribute("DotNetReleaseShipping").Value == "true")
-                        {
-                            misclassifiedBlobsVmrShipping.Add(file.Substring(assetBasePath.Length - 1));
-                        }
-                        else
-                        {
-                            misclassifiedBlobsVmrNonShipping.Add(file.Substring(assetBasePath.Length - 1));
-                        }
-                        foundMatchBlob = true;
-                        break;
-                    }
-                }
-
-                if (!foundMatchBlob)
-                {
-                    if (file.Contains("\\nonshipping\\"))
-                    {
-                        missingBlobsNonShipping.Add(file.Substring(assetBasePath.Length - 1));
-                    }
-                    else
-                    {
-                        missingBlobsShipping.Add(file.Substring(assetBasePath.Length - 1));
-                    }
-                }
-            }
-        }*/
-
-        Directory.CreateDirectory(outputFilePath);
-
-        File.WriteAllLines(Path.Combine(outputFilePath, "MissingShippingPackages.txt"), missingPackagesShipping);
-        File.WriteAllLines(Path.Combine(outputFilePath, "MissingNonShippingPackages.txt"), missingPackagesNonShipping);
-        File.WriteAllLines(Path.Combine(outputFilePath, "MissingShippingBlobs.txt"), missingBlobsShipping);
-        File.WriteAllLines(Path.Combine(outputFilePath, "MissingNonShippingBlobs.txt"), missingBlobsNonShipping);
-        File.WriteAllLines(Path.Combine(outputFilePath, "NonShippingBlobsMarkedShippingByVMR.txt"), misclassifiedBlobsVmrShipping);
-        File.WriteAllLines(Path.Combine(outputFilePath, "ShippingBlobsMarkedNonShippingByVMR.txt"), misclassifiedBlobsVmrNonShipping);
+        return (compareResult ? 0 : 1);
     }
 
-    private static void EvaluatePackages(List<string> missingPackagesShipping, List<string> missingPackagesNonShipping, List<AssetMapping> assetMappings)
+    string _vmrManifestPath;
+    string _vmrBuildAssetBasePath;
+    string _baseBuildAssetBasePath;
+    string _outputFilePath;
+
+    private Program(string vmrManifestPath, string vmrAssetBasePath, string baseBuildAssetBasePath, string outputFilePath)
+    {
+        _vmrManifestPath = vmrManifestPath;
+        _vmrBuildAssetBasePath = vmrAssetBasePath;
+        _baseBuildAssetBasePath = baseBuildAssetBasePath;
+        _outputFilePath = outputFilePath;
+    }
+
+    private bool CompareBuilds()
+    {
+        try
+        {
+            // Load the XML file
+            XDocument vmrMergedManifestContent = XDocument.Load(_vmrManifestPath);
+
+            // Get all files in the assets folder, including subfolders
+            var allFiles = Directory.GetFiles(_baseBuildAssetBasePath, "*", SearchOption.AllDirectories);
+
+            List<AssetMapping> assetMappings = new List<AssetMapping>();
+
+            // Walk the top-level directories of the asset base path, and find the MergedManifest under each
+            // one. The MergedManifest.xml contains the list of outputs produced by the repo.
+
+            foreach (var baseDirectory in Directory.GetDirectories(_baseBuildAssetBasePath, "*", SearchOption.TopDirectoryOnly))
+            {
+                // Find the merged manifest underneath this directory
+                // (e.g. <assetBasePath>/arcade/nonshipping/<version>>/MergedManifest.xml)
+
+                string repoMergedManifestPath = Directory.GetFiles(baseDirectory,
+                    "MergedManifest.xml", SearchOption.AllDirectories)
+                    .FirstOrDefault();
+
+                if (repoMergedManifestPath == null)
+                {
+                    Console.WriteLine($"Failed to find merged manifest for {baseDirectory}");
+                    continue;
+                }
+
+                var repoBuildMergeManifestContent = XDocument.Load(repoMergedManifestPath);
+                assetMappings.AddRange(MapFilesForManifest(vmrMergedManifestContent,
+                                                           baseDirectory,
+                                                           _vmrBuildAssetBasePath,
+                                                           repoMergedManifestPath,
+                                                           repoBuildMergeManifestContent));
+            }
+
+            // Now that we have the asset mappings, we can check for missing, misclassified, or incorrect assets
+            EvaluatePackages(assetMappings);
+            EvaluateBlobs(assetMappings);
+
+            WriteResults(assetMappings);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void WriteResults(List<AssetMapping> assetMappings)
+    {
+        Directory.CreateDirectory(_outputFilePath);
+
+        // Generate the AssetReportType by grouping the asset mappings by whether they
+        // have issues
+        var assetReport = new AssetReport
+        {
+            AssetsWithIssues = assetMappings.Where(a => a.Issues.Count > 0).OrderByDescending(a => a.Issues.Count).ToList(),
+            AssetsWithoutIssues = assetMappings.Where(a => a.Issues.Count == 0).ToList()
+        };
+
+        // Serialize all asset mappings to xml
+        var serializer = new System.Xml.Serialization.XmlSerializer(typeof(AssetReport));
+        using (var stream = new FileStream(Path.Combine(_outputFilePath, "BuildComparison.xml"), FileMode.Create))
+        {
+            serializer.Serialize(stream, assetReport);
+            stream.Close();
+        }
+    }
+
+    private void EvaluatePackages(List<AssetMapping> assetMappings)
     {
         foreach (var mapping in assetMappings.Where(a => a.AssetType == AssetType.Package))
         {
             // Filter away mappings that we do not care about
-            if (mapping.BaseBuildManifestElement.Attribute("Id").Value.Contains("Microsoft.SourceBuild.Intermediate"))
+            if (mapping.Id.Contains("Microsoft.SourceBuild.Intermediate"))
             {
                 continue;
             }
@@ -190,22 +218,68 @@ class Program
             // Check if the package is missing in the VMR
             if (!mapping.DiffElementFound)
             {
-                string detailsString = $"{mapping.Id} ({mapping.BaseBuildFilePath ?? "base file only in manifest"})";
-                if (mapping.BaseBuildManifestElement.Attribute("NonShipping")?.Value == "true")
+                mapping.Issues.Add(new Issue
                 {
-                    missingPackagesNonShipping.Add(detailsString);
-                }
-                else
-                {
-                    missingPackagesShipping.Add(detailsString);
-                }
+                    IssueType = mapping.BaseBuildManifestElement.Attribute("NonShipping")?.Value == "true" ? IssueType.MissingNonShipping : IssueType.MissingShipping,
+                    Description = $"Package '{mapping.Id}' is missing in the VMR."
+                });
             }
-
-            // Now perform additional tests over the package content
+            else
+            {
+                // Asset is found. Perform tests.
+                EvaluateClassification(mapping);
+            }
         }
     }
 
-    private static List<AssetMapping> MapFilesForManifest(XDocument vmrMergedManifestContent, string baseDirectory, string repoMergedManifestPath, XDocument repoBuildMergeManifestContent)
+    private static void EvaluateClassification(AssetMapping mapping)
+    {
+        // Check for misclassification
+        bool isBaseShipping = mapping.BaseBuildManifestElement.Attribute("NonShipping")?.Value != "true";
+        bool isDiffShipping = mapping.DiffManifestElement.Attribute("NonShipping")?.Value != "true";
+
+        if (isBaseShipping != isDiffShipping)
+        {
+            mapping.Issues.Add(new Issue
+            {
+                IssueType = IssueType.MisclassifiedAsset,
+                Description = $"Asset '{mapping.Id}' is misclassified in the VMR. Base build is {(isBaseShipping ? "shipping" : "nonshipping")} and VMR build is {(isDiffShipping ? "shipping" : "nonshipping")}"
+            });
+        }
+    }
+
+    private void EvaluateBlobs(List<AssetMapping> assetMappings)
+    {
+        foreach (var mapping in assetMappings.Where(a => a.AssetType == AssetType.Blob))
+        {
+            // Filter away mappings that we do not care about
+            if (mapping.Id.Contains(".wixpack.zip"))
+            {
+                continue;
+            }
+            if (mapping.Id.Contains("MergedManifest.xml"))
+            {
+                continue;
+            }
+
+            // Check if the package is missing in the VMR
+            if (!mapping.DiffElementFound)
+            {
+                mapping.Issues.Add(new Issue
+                {
+                    IssueType = mapping.BaseBuildManifestElement.Attribute("NonShipping")?.Value == "true" ? IssueType.MissingNonShipping : IssueType.MissingShipping,
+                    Description = $"Blob '{mapping.Id}' is missing in the VMR."
+                });
+            }
+            else
+            {
+                // Asset is found. Perform tests.
+                EvaluateClassification(mapping);
+            }
+        }
+    }
+
+    private List<AssetMapping> MapFilesForManifest(XDocument vmrMergedManifestContent, string baseDirectory, string diffDirectory, string repoMergedManifestPath, XDocument repoBuildMergeManifestContent)
     {
         List<AssetMapping> assetMappings = new();
         Console.WriteLine($"Mapping base build outputs in {repoMergedManifestPath} to VMR.");
@@ -216,10 +290,10 @@ class Program
             switch (element.Name.LocalName)
             {
                 case "Blob":
-                    assetMappings.Add(MapBlob(vmrMergedManifestContent, element, baseDirectory, null));
+                    assetMappings.Add(MapBlob(vmrMergedManifestContent, element, baseDirectory, diffDirectory));
                     break;
                 case "Package":
-                    assetMappings.Add(MapPackage(vmrMergedManifestContent, element, baseDirectory, null));
+                    assetMappings.Add(MapPackage(vmrMergedManifestContent, element, baseDirectory, diffDirectory));
                     break;
                 case "Build":
                 case "SigningInformation":
@@ -238,19 +312,65 @@ class Program
         return assetMappings;
     }
 
-    private static AssetMapping MapBlob(XDocument diffMergedManifestContent, XElement baseElement, string basePath, string diffPath)
+    private AssetMapping MapBlob(XDocument diffMergedManifestContent, XElement baseElement, string basePath, string diffPath)
     {
-        return new AssetMapping
+        string baseBlobId = baseElement.Attribute("Id")?.Value;
+        string baseBlobFileName = Path.GetFileName(baseBlobId);
+        string baseShippingPathElement = CalculateShippingPathElement(baseElement);
+        string baseFilePath = Path.Combine(basePath, baseShippingPathElement, (!baseBlobId.StartsWith("assets") ? "assets" : ""), baseBlobId);
+
+        if (!File.Exists(baseFilePath))
         {
-            DiffFilePath = null,
-            DiffManifestElement = null,
-            BaseBuildFilePath = null,
+            // Find the diff file path
+            baseFilePath = null;
+        }
+
+        // To attempt to find the matching element, we use the version identifier to remove
+        // the version number from the file name, then search for a file with the same name
+        // in the target manifest. Use the version identifier on the full ID because it's
+        // smarter in some cases using that.
+
+        string baseVersion = VersionIdentifier.GetVersion(baseBlobId);
+        string strippedBaseBlobFileName = baseBlobFileName.Replace(baseVersion, string.Empty);
+
+        var diffBlobElement = diffMergedManifestContent.Descendants("Blob")
+            .FirstOrDefault(p =>
+            {
+                string diffBlobId = p.Attribute("Id")?.Value;
+                string diffBlobFileName = Path.GetFileName(diffBlobId);
+                string diffVersion = VersionIdentifier.GetVersion(diffBlobId);
+                string strippedDiffBlobFileName = diffBlobFileName.Replace(diffVersion, string.Empty);
+                return strippedBaseBlobFileName.Equals(strippedDiffBlobFileName, StringComparison.OrdinalIgnoreCase);
+            });
+
+        string diffFilePath = null;
+        if (diffBlobElement != null)
+        {
+            diffFilePath = Path.Combine(diffPath, "BlobArtifacts", Path.GetFileName(diffBlobElement.Attribute("Id")?.Value));
+            if (!File.Exists(diffFilePath))
+            {
+                diffFilePath = null;
+            }
+        }
+
+            return new AssetMapping
+        {
+            Id = baseBlobId,
+            DiffFilePath = diffFilePath,
+            DiffManifestElement = diffBlobElement,
+            BaseBuildFilePath = baseFilePath,
             BaseBuildManifestElement = baseElement,
             AssetType = AssetType.Blob
         };
     }
 
-    private static AssetMapping MapPackage(XDocument diffMergedManifestContent, XElement baseElement, string basePath, string diffPath)
+    private static string CalculateShippingPathElement(XElement baseElement)
+    {
+        bool baseBlobIsShipping = baseElement.Attribute("NonShipping")?.Value != "true";
+        return baseBlobIsShipping ? "shipping" : "nonshipping";
+    }
+
+    private AssetMapping MapPackage(XDocument diffMergedManifestContent, XElement baseElement, string basePath, string diffPath)
     {
         string packageId = baseElement.Attribute("Id")?.Value;
         string basePackageVersion = baseElement.Attribute("Version")?.Value;
@@ -273,7 +393,7 @@ class Program
             string diffPackageVersion = diffPackageElement.Attribute("Version")?.Value;
             bool diffPackageIsShipping = diffPackageElement.Attribute("NonShipping")?.Value != "true";
             string diffPackageShippingPathElement = diffPackageIsShipping ? "shipping" : "nonshipping";
-            diffFilePath = Path.Combine(basePath, diffPackageShippingPathElement, "packages", $"{packageId}.{diffPackageVersion}.nupkg");
+            diffFilePath = Path.Combine(diffPath, "PackageArtifacts", $"{packageId}.{diffPackageVersion}.nupkg");
             if (!File.Exists(diffFilePath))
             {
                 diffFilePath = null;
@@ -289,39 +409,5 @@ class Program
             BaseBuildManifestElement = baseElement,
             AssetType = AssetType.Package
         };
-    }
-
-    static string GetModifiedBlobPath(string inputString)
-    {
-        var parts = inputString.Split('/');
-        var modifiedParts = parts.Select(ModifyNamePart).ToArray();
-        var newString = string.Join('/', modifiedParts);
-
-        if (newString.StartsWith("assets/"))
-        {
-            newString = newString.Substring(7);
-        }
-
-        return newString;
-    }
-
-    static string ModifyNamePart(string name)
-    {
-        string pattern = @"(?<=[-.])(\d{3,})(?=[-.])|(?<=[-.])(\d{3,})$";
-        var matches = Regex.Matches(name, pattern);
-
-        if (matches.Count > 0)
-        {
-            var lastMatch = matches[matches.Count - 1].Value;
-            name = Regex.Replace(name, Regex.Escape(lastMatch), "\\d+");
-        }
-
-        if (matches.Count > 1)
-        {
-            var secondLastMatch = matches[matches.Count - 2].Value;
-            name = Regex.Replace(name, Regex.Escape(secondLastMatch), "\\d+");
-        }
-
-        return name;
     }
 }

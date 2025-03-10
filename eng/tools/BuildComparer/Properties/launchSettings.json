@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "BuildComparer": {
+      "commandName": "Project",
+      "commandLineArgs": "-vmrManifestPath C:\\scratch\\vmr-compare\\vmr-manifest.xml -vmrAssetBasePath C:\\scratch\\vmr-compare\\vmr-assets -msftAssetBasePath C:\\scratch\\vmr-compare\\non-vmr-assets\\ -reportPath C:\\scratch\\vmr-compare\\report\\"
+    }
+  }
+}

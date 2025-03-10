@@ -6,8 +6,6 @@
     <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Command-line-api dependencies -->
-    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <!-- MSBuild dependencies -->
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildVersion)" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="$(MicrosoftBuildVersion)" />
@@ -20,6 +18,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
     <!-- Arcade utility dependencies -->
     <PackageVersion Include="Microsoft.DotNet.VersionTools" Version="$(MicrosoftDotNetVersionToolsVersion)" />
+    <PackageVersion Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
   </ItemGroup>
   <!-- External dependencies -->
   <ItemGroup>
