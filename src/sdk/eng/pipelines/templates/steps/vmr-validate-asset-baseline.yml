@@ -6,7 +6,7 @@ steps:
   inputs:
     buildType: specific
     buildVersionToDownload: specific
-    project: dnceng
+    project: internal
     pipeline: 1330
     buildId: 2656940
     downloadType: 'specific'
@@ -20,7 +20,7 @@ steps:
   inputs:
     buildType: specific
     buildVersionToDownload: specific
-    project: dnceng
+    project: internal
     pipeline: 1330
     buildId: 2656940
     downloadType: 'specific'
@@ -34,7 +34,7 @@ steps:
   inputs:
     buildType: specific
     buildVersionToDownload: specific
-    project: dnceng
+    project: internal
     pipeline: 1330
     buildId: 2656940
     downloadType: 'specific'
@@ -43,6 +43,13 @@ steps:
 
 - powershell: $(Build.SourcesDirectory)\eng\common\darc-init.ps1 -toolpath $(Build.SourcesDirectory)\artifacts\tools\darc
   displayName: Install darc
+
+- script: dotnet run $(Build.SourcesDirectory)\eng\tools\BuildComparer\BuildComparer.csproj
+                 -vmrManifestPath '$(Build.ArtifactStagingDirectory)\AssetManifests\MergedManifest.xml'
+                 -vmrAssetBasePath '$(Build.ArtifactStagingDirectory)/vmr-assets'
+                 -msftAssetBasePath '$(Build.ArtifactStagingDirectory)\base-assets\'
+                 -reportPath '$(Build.SourcesDirectory)\artifacts\AssetBaselines\'
+  displayName: Validate Asset Baselines
 
 - task: AzureCLI@2
   displayName: 'Gather Drop'
