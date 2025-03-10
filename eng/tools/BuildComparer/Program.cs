@@ -103,8 +103,8 @@ class Program
 
         rootCommand.Description = "Compares build manifests and outputs missing or misclassified assets.";
 
-        bool compareResult = false;
-        rootCommand.SetAction(async (result) =>
+        bool compareResult = false; 
+        rootCommand.SetAction((result) =>
         {
             var comparer = new Program(result.GetValue(vmrManifestPathArgument),
                                        result.GetValue(vmrAssetBasePathArgument),
