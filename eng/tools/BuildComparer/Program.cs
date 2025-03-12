@@ -8,76 +8,188 @@ using System.Reflection.PortableExecutable;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 
+/// <summary>
+/// Defines the type of asset being processed in the build comparison tool.
+/// </summary>
 public enum AssetType
 {
+    /// <summary>
+    /// Represents a random non-package file in the build.
+    /// </summary>
     Blob,
+    
+    /// <summary>
+    /// Represents a NuGet package asset.
+    /// </summary>
     Package,
+    
+    /// <summary>
+    /// Represents an asset of unknown type.
+    /// </summary>
     Unknown
 }
 
+/// <summary>
+/// Contains the results of a build comparison between Microsoft and VMR builds.
+/// </summary>
 public class ComparisonReport
 {
+    /// <summary>
+    /// Gets the number of assets with identified issues.
+    /// </summary>
     [XmlAttribute("IssueCount")]
     public int IssueCount { get => AssetsWithIssues.Count; }
 
+    /// <summary>
+    /// Gets the number of assets with evaluation errors.
+    /// </summary>
     [XmlAttribute("ErrorCount")]
     public int ErrorCount { get => AssetsWithErrors.Count; }
 
+    /// <summary>
+    /// Gets the total number of assets analyzed in the report.
+    /// </summary>
     [XmlAttribute("TotalCount")]
     public int TotalCount { get => AssetsWithIssues.Count + AssetsWithoutIssues.Count; }
+    
+    /// <summary>
+    /// Gets or sets the list of assets that have issues.
+    /// </summary>
     public List<AssetMapping> AssetsWithIssues { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the list of assets that have evaluation errors.
+    /// </summary>
     public List<AssetMapping> AssetsWithErrors { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the list of assets without any identified issues.
+    /// </summary>
     public List<AssetMapping> AssetsWithoutIssues { get; set; }
 }
+
+/// <summary>
+/// Represents the mapping between base build and VMR build for a specific asset.
+/// </summary>
 public class AssetMapping
 {
+    /// <summary>
+    /// Gets or sets the identifier of the asset.
+    /// </summary>
     [XmlAttribute("Id")]
     public string Id { get; set; }
 
+    /// <summary>
+    /// Gets or sets the type of the asset.
+    /// </summary>
     [XmlAttribute("Type")]
     public AssetType AssetType { get; set; } = AssetType.Unknown;
+    
+    /// <summary>
+    /// Gets a value indicating whether a corresponding element was found in the diff manifest.
+    /// </summary>
     [XmlIgnore]
     public bool DiffElementFound { get => DiffManifestElement != null; }
+    
+    /// <summary>
+    /// Gets a value indicating whether a corresponding file was found in the diff build.
+    /// </summary>
     [XmlIgnore]
     public bool DiffFileFound { get => DiffFilePath != null; }
 
+    /// <summary>
+    /// Gets or sets the path to the diff file.
+    /// </summary>
     [XmlElement("DiffFile")]
     public string DiffFilePath { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the XML element from the diff manifest.
+    /// </summary>
     [XmlIgnore]
     public XElement DiffManifestElement { get; set; }
 
+    /// <summary>
+    /// Gets or sets the path to the base build file.
+    /// </summary>
     [XmlElement("BaseFile")]
     public string BaseBuildFilePath { get; set; }
 
+    /// <summary>
+    /// Gets or sets the XML element from the base build manifest.
+    /// </summary>
     [XmlIgnore]
     public XElement BaseBuildManifestElement
     {
         get; set;
     }
 
+    /// <summary>
+    /// Gets or sets the list of errors encountered during evaluation.
+    /// </summary>
     public List<string> EvaluationErrors { get; set; } = new List<string>();
 
+    /// <summary>
+    /// Gets or sets the list of issues identified for this asset.
+    /// </summary>
     public List<Issue> Issues { get; set; } = new List<Issue>();
 }
 
+/// <summary>
+/// Defines types of issues that can be identified during asset comparison.
+/// </summary>
 public enum IssueType
 {
+    /// <summary>
+    /// Indicates a shipping asset is missing in the VMR build.
+    /// </summary>
     MissingShipping,
+    
+    /// <summary>
+    /// Indicates a non-shipping asset is missing in the VMR build.
+    /// </summary>
     MissingNonShipping,
+    
+    /// <summary>
+    /// Indicates an asset is classified differently between base and VMR builds.
+    /// </summary>
     MisclassifiedAsset,
+    
+    /// <summary>
+    /// Indicates a version mismatch between assemblies in base and VMR builds.
+    /// </summary>
     AssemblyVersionMismatch,
 }
 
+/// <summary>
+/// Represents an issue identified during asset comparison.
+/// </summary>
 public class Issue
 {
+    /// <summary>
+    /// Gets or sets the type of issue.
+    /// </summary>
     [XmlAttribute("Type")]
     public IssueType IssueType { get; set; }
+    
+    /// <summary>
+    /// Gets or sets a description of the issue.
+    /// </summary>
     [XmlAttribute("Description")]
     public string Description { get; set; }
 }
 
+/// <summary>
+/// Tool for comparing Microsoft builds with VMR (Virtual Mono Repo) builds.
+/// Identifies missing assets, misclassified assets, and assembly version mismatches.
+/// </summary>
 public class Program
 {
+    /// <summary>
+    /// Entry point for the build comparison tool.
+    /// </summary>
+    /// <param name="args">Command line arguments.</param>
+    /// <returns>Return code indicating success (0) or failure (non-zero).</returns>
     static int Main(string[] args)
     {
         var vmrManifestPathArgument = new CliOption<string>("-vmrManifestPath")
@@ -129,14 +241,49 @@ public class Program
         return (int)comparer.CompareBuilds().GetAwaiter().GetResult();
     }
 
-    string _vmrManifestPath;
-    string _vmrBuildAssetBasePath;
-    string _baseBuildAssetBasePath;
-    string _outputFilePath;
-    SemaphoreSlim _throttle;
-    ComparisonReport _comparisonReport = new ComparisonReport();
-    List<AssetMapping> _assetMappings = new List<AssetMapping>();
+    /// <summary>
+    /// Path to the VMR manifest file.
+    /// </summary>
+    private string _vmrManifestPath;
+    
+    /// <summary>
+    /// Base path for VMR build assets.
+    /// </summary>
+    private string _vmrBuildAssetBasePath;
+    
+    /// <summary>
+    /// Base path for Microsoft build assets.
+    /// </summary>
+    private string _baseBuildAssetBasePath;
+    
+    /// <summary>
+    /// Path where the comparison report will be saved.
+    /// </summary>
+    private string _outputFilePath;
+    
+    /// <summary>
+    /// Semaphore used to control parallel processing.
+    /// </summary>
+    private SemaphoreSlim _throttle;
+    
+    /// <summary>
+    /// Report containing the results of the comparison.
+    /// </summary>
+    private ComparisonReport _comparisonReport = new ComparisonReport();
+    
+    /// <summary>
+    /// List of all asset mappings between base and VMR builds.
+    /// </summary>
+    private List<AssetMapping> _assetMappings = new List<AssetMapping>();
 
+    /// <summary>
+    /// Initializes a new instance of the Program class with specified parameters.
+    /// </summary>
+    /// <param name="vmrManifestPath">Path to the VMR manifest file.</param>
+    /// <param name="vmrAssetBasePath">Base path for VMR build assets.</param>
+    /// <param name="baseBuildAssetBasePath">Base path for Microsoft build assets.</param>
+    /// <param name="outputFilePath">Path where the comparison report will be saved.</param>
+    /// <param name="parallelTasks">Number of tasks to run in parallel.</param>
     private Program(string vmrManifestPath,
                     string vmrAssetBasePath,
                     string baseBuildAssetBasePath,
@@ -150,6 +297,10 @@ public class Program
         _throttle = new SemaphoreSlim(parallelTasks, parallelTasks);
     }
 
+    /// <summary>
+    /// Executes the build comparison process.
+    /// </summary>
+    /// <returns>Task representing the asynchronous operation with a return code: 0 for success, 1 for failure.</returns>
     private async Task<int> CompareBuilds()
     {
         try
@@ -162,11 +313,15 @@ public class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine($"Error: {ex.ToString()}");
             return 1;
         }
     }
 
+    /// <summary>
+    /// Evaluates all asset mappings by processing packages and blobs in parallel.
+    /// </summary>
+    /// <returns>Task representing the asynchronous operation.</returns>
     private async Task EvaluateMappings()
     {
         var tasks = new Task[] {
@@ -176,6 +331,13 @@ public class Program
         await Task.WhenAll(tasks);
     }
 
+    /// <summary>
+    /// Generates asset mappings between base builds and VMR builds.
+    /// </summary>
+    /// <remarks>
+    /// Walks through each repository's merged manifest and maps files between
+    /// the base build and VMR build based on asset IDs.
+    /// </remarks>
     private void GenerateAssetMappings()
     {
         Console.WriteLine($"Loading VMR manifest from {_vmrManifestPath}");
@@ -213,6 +375,9 @@ public class Program
         }
     }
 
+    /// <summary>
+    /// Generates the final comparison report and saves it to the specified output file.
+    /// </summary>
     private void GenerateReport()
     {
         Directory.CreateDirectory(Path.GetDirectoryName(_outputFilePath));
@@ -232,7 +397,11 @@ public class Program
         }
     }
 
-
+    /// <summary>
+    /// Evaluates all package mappings in parallel.
+    /// </summary>
+    /// <param name="packageMappings">Enumerable of package asset mappings to evaluate.</param>
+    /// <returns>Task representing the asynchronous operation.</returns>
     private async Task EvaluatePackages(IEnumerable<AssetMapping> packageMappings)
     {
         var packageEvaluationTasks = packageMappings.Select(mapping => EvaluatePackage(mapping)).ToArray();
@@ -240,6 +409,11 @@ public class Program
         await Task.WhenAll(packageEvaluationTasks).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Evaluates a single package mapping for issues.
+    /// </summary>
+    /// <param name="mapping">The package asset mapping to evaluate.</param>
+    /// <returns>Task representing the asynchronous operation.</returns>
     private async Task EvaluatePackage(AssetMapping mapping)
     {
         try
@@ -267,7 +441,7 @@ public class Program
             }
 
             EvaluateClassification(mapping);
-            await CompareAssemblyVersions(mapping);
+            await EvaluatePackageContents(mapping);
         }
         catch (Exception e)
         {
@@ -281,7 +455,7 @@ public class Program
 
     static readonly ImmutableArray<string> IncludedFileExtensions = [".dll", ".exe"];
 
-    public async Task CompareAssemblyVersions(AssetMapping mapping)
+    public async Task EvaluatePackageContents(AssetMapping mapping)
     {
         var diffNugetPackagePath = mapping.DiffFilePath;
         var baselineNugetPackagePath = mapping.BaseBuildFilePath;

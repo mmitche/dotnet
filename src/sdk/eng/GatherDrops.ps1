@@ -14,7 +14,7 @@ foreach ($repo in $jsonContent.repositories) {
     $remoteUri = $repo.remoteUri
     $commitSha = $repo.commitSha
     $path = "$outputPath$($repo.path)"
-    $darcCommand = "$darcPath gather-drop -c $commitSha -r $remoteUri --non-shipping --skip-existing --continue-on-error --use-azure-credential-for-blobs -o $path --verbose --ci"
+    $darcCommand = "$darcPath gather-drop -c $commitSha -r $remoteUri --non-shipping --max-downloads 16 --skip-existing --continue-on-error --use-azure-credential-for-blobs -o $path --verbose --ci"
     Write-Output "Gathering drop for $remoteUri"
     Invoke-Expression $darcCommand
 }
