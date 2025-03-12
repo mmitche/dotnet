@@ -55,7 +55,7 @@ steps:
     arguments: -filePath '$(Build.SourcesDirectory)\src\source-manifest.json' -outputPath '$(Build.ArtifactStagingDirectory)\base-assets\'
       -darcPath '$(Build.SourcesDirectory)\artifacts\tools\darc\darc.exe' -githubPat $(BotAccount-dotnet-bot-repo-PAT) -azdevPat $(dn-bot-all-drop-rw-code-rw-release-all)
 
-- task: PowerShell@2:
+- task: PowerShell@2
   inputs:
     filePath: $(Build.SourcesDirectory)\eng\common\build.ps1
     arguments: -ci -projects $(Build.SourcesDirectory)\eng\tools\BuildComparer\BuildComparer.csproj -restore -build
