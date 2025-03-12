@@ -159,6 +159,7 @@ public enum IssueType
     /// Indicates a version mismatch between assemblies in base and VMR builds.
     /// </summary>
     AssemblyVersionMismatch,
+    MissingPackageContent,
 }
 
 /// <summary>
@@ -306,7 +307,7 @@ public class Program
         try
         {
             GenerateAssetMappings();
-            await EvaluateMappings();
+            await EvaluateAssets();
             GenerateReport();
 
             return 0;
@@ -322,13 +323,14 @@ public class Program
     /// Evaluates all asset mappings by processing packages and blobs in parallel.
     /// </summary>
     /// <returns>Task representing the asynchronous operation.</returns>
-    private async Task EvaluateMappings()
+    private async Task EvaluateAssets()
     {
-        var tasks = new Task[] {
-                EvaluatePackages(_assetMappings.Where(mapping => mapping.AssetType == AssetType.Package)),
-                EvaluateBlobs(_assetMappings.Where(mapping => mapping.AssetType == AssetType.Blob)) };
+        var evaluationTasks = _assetMappings.Select(mapping => Task.Run(async () =>
+        {
+            await EvaluateAsset(mapping);
+        }));
 
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(evaluationTasks);
     }
 
     /// <summary>
@@ -366,12 +368,10 @@ public class Program
                 continue;
             }
 
-            var repoBuildMergeManifestContent = XDocument.Load(repoMergedManifestPath);
             _assetMappings.AddRange(MapFilesForManifest(vmrMergedManifestContent,
                                                        baseDirectory,
                                                        _vmrBuildAssetBasePath,
-                                                       repoMergedManifestPath,
-                                                       repoBuildMergeManifestContent));
+                                                       repoMergedManifestPath));
         }
     }
 
@@ -398,15 +398,20 @@ public class Program
     }
 
     /// <summary>
-    /// Evaluates all package mappings in parallel.
+    /// Evaluates a single asset mapping for issues based on its type (Package or Blob).
     /// </summary>
-    /// <param name="packageMappings">Enumerable of package asset mappings to evaluate.</param>
-    /// <returns>Task representing the asynchronous operation.</returns>
-    private async Task EvaluatePackages(IEnumerable<AssetMapping> packageMappings)
+    /// <param name="mapping"></param>
+    /// <returns></returns>
+    private async Task EvaluateAsset(AssetMapping mapping)
     {
-        var packageEvaluationTasks = packageMappings.Select(mapping => EvaluatePackage(mapping)).ToArray();
-
-        await Task.WhenAll(packageEvaluationTasks).ConfigureAwait(false);
+        if (mapping.AssetType == AssetType.Package)
+        {
+            await EvaluatePackage(mapping);
+        }
+        else if (mapping.AssetType == AssetType.Blob)
+        {
+            await EvaluateBlob(mapping);
+        }
     }
 
     /// <summary>
@@ -453,14 +458,15 @@ public class Program
         }
     }
 
-    static readonly ImmutableArray<string> IncludedFileExtensions = [".dll", ".exe"];
+    static readonly ImmutableArray<string> IncludedAssemblyNameCheckFileExtensions = [".dll", ".exe"];
+
 
     public async Task EvaluatePackageContents(AssetMapping mapping)
     {
         var diffNugetPackagePath = mapping.DiffFilePath;
         var baselineNugetPackagePath = mapping.BaseBuildFilePath;
-        var packageName = mapping.Id;
 
+        // If either of the paths don't exist, we can't run this comparison
         if (diffNugetPackagePath == null || baselineNugetPackagePath == null)
         {
             return;
@@ -472,50 +478,8 @@ public class Program
             {
                 using (PackageArchiveReader baselinePackageReader = new PackageArchiveReader(baselineNugetPackagePath))
                 {
-
-                    IEnumerable<string> baselineFiles = (await baselinePackageReader.GetFilesAsync(CancellationToken.None)).Where(f => IncludedFileExtensions.Contains(Path.GetExtension(f)));
-                    IEnumerable<string> testFiles = (await testPackageReader.GetFilesAsync(CancellationToken.None)).Where(f => IncludedFileExtensions.Contains(Path.GetExtension(f)));
-                    foreach (var fileName in baselineFiles.Intersect(testFiles))
-                    {
-                        try
-                        {
-                            AssemblyName baselineAssemblyName = null;
-                            AssemblyName testAssemblyName = null;
-
-                            using (var baselineStream = await ReadEntryToStream(baselinePackageReader, fileName))
-                            using (var testStream = await ReadEntryToStream(testPackageReader, fileName))
-                            {
-                                baselineAssemblyName = GetAssemblyName(baselineStream, fileName);
-                                testAssemblyName = GetAssemblyName(testStream, fileName);
-                            }
-
-                            if ((baselineAssemblyName == null) != (testAssemblyName == null))
-                            {
-                                mapping.Issues.Add(new Issue
-                                {
-                                    IssueType = IssueType.AssemblyVersionMismatch,
-                                    Description = $"Assembly '{fileName}' in package '{packageName}' has different versions in the VMR and base build."
-                                });
-                            }
-                            else if (baselineAssemblyName == null && testAssemblyName == null)
-                            {
-                                continue;
-                            }
-
-                            if (baselineAssemblyName.ToString() != testAssemblyName.ToString())
-                            {
-                                mapping.Issues.Add(new Issue
-                                {
-                                    IssueType = IssueType.AssemblyVersionMismatch,
-                                    Description = $"Assembly '{fileName}' in package '{packageName}' has different versions in the VMR and base build. VMR version: {baselineAssemblyName}, base build version: {testAssemblyName}"
-                                });
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            mapping.EvaluationErrors.Add(e.ToString());
-                        }
-                    }
+                    ComparePackageFileLists(mapping, testPackageReader, baselinePackageReader);
+                    await ComparePackageAssemblyVersions(mapping, testPackageReader, baselinePackageReader);
                 }
             }
         }
@@ -523,35 +487,107 @@ public class Program
         {
             mapping.EvaluationErrors.Add(e.ToString());
         }
+    }
 
-        static async Task<Stream> ReadEntryToStream(PackageArchiveReader packageArchiveReader, string fileName)
-        {
-            var outputStream = new MemoryStream();
-            var entryStream = packageArchiveReader.GetEntry(fileName).Open();
-            await entryStream.CopyToAsync(outputStream, CancellationToken.None);
-            await entryStream.FlushAsync(CancellationToken.None);
-            outputStream.Position = 0;
-            return outputStream;
-        }
+    private async void ComparePackageFileLists(AssetMapping mapping, PackageArchiveReader testPackageReader, PackageArchiveReader baselinePackageReader)
+    {
+        IEnumerable<string> baselineFiles = (await baselinePackageReader.GetFilesAsync(CancellationToken.None));
+        IEnumerable<string> testFiles = (await testPackageReader.GetFilesAsync(CancellationToken.None));
 
-        static AssemblyName GetAssemblyName(Stream stream, string fileName)
+        var missingFiles = baselineFiles.Except(testFiles).ToList();
+
+        foreach (var missingFile in missingFiles)
         {
-            using (var peReader = new PEReader(stream))
+            mapping.Issues.Add(new Issue
             {
-                if (!peReader.HasMetadata)
+                IssueType = IssueType.MissingPackageContent,
+                Description = $"Package '{mapping.Id}' is missing the following files in the VMR: {string.Join(", ", missingFile)}"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Compares the assembly versions of the files in the test and baseline packages.
+    /// </summary>
+    /// <param name="mapping">Mapping to evaluate</param>
+    /// <param name="packageName"></param>
+    /// <param name="testPackageReader"></param>
+    /// <param name="baselinePackageReader"></param>
+    /// <returns></returns>
+    private static async Task ComparePackageAssemblyVersions(AssetMapping mapping, PackageArchiveReader testPackageReader, PackageArchiveReader baselinePackageReader)
+    {
+        IEnumerable<string> baselineFiles = (await baselinePackageReader.GetFilesAsync(CancellationToken.None)).Where(f => IncludedAssemblyNameCheckFileExtensions.Contains(Path.GetExtension(f)));
+        IEnumerable<string> testFiles = (await testPackageReader.GetFilesAsync(CancellationToken.None)).Where(f => IncludedAssemblyNameCheckFileExtensions.Contains(Path.GetExtension(f)));
+        foreach (var fileName in baselineFiles.Intersect(testFiles))
+        {
+            try
+            {
+                using var baselineStream = await ReadPackageEntryToStream(baselinePackageReader, fileName);
+                using var testStream = await ReadPackageEntryToStream(testPackageReader, fileName);
+
+                AssemblyName baselineAssemblyName = GetAssemblyName(baselineStream, fileName);
+                AssemblyName testAssemblyName = GetAssemblyName(testStream, fileName);
+
+                if ((baselineAssemblyName == null) != (testAssemblyName == null))
                 {
-                    return null;
+                    mapping.Issues.Add(new Issue
+                    {
+                        IssueType = IssueType.AssemblyVersionMismatch,
+                        Description = $"Assembly '{fileName}' in package '{mapping.Id}' has different versions in the VMR and base build."
+                    });
+                }
+                else if (baselineAssemblyName == null && testAssemblyName == null)
+                {
+                    continue;
                 }
 
-                var metadataReader = peReader.GetMetadataReader();
-                var assemblyDefinition = metadataReader.GetAssemblyDefinition();
-                var assemblyName = assemblyDefinition.GetAssemblyName();
-
-                return assemblyName;
+                if (baselineAssemblyName.ToString() != testAssemblyName.ToString())
+                {
+                    mapping.Issues.Add(new Issue
+                    {
+                        IssueType = IssueType.AssemblyVersionMismatch,
+                        Description = $"Assembly '{fileName}' in package '{mapping.Id}' has different versions in the VMR and base build. VMR version: {baselineAssemblyName}, base build version: {testAssemblyName}"
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                mapping.EvaluationErrors.Add(e.ToString());
             }
         }
     }
 
+    private static async Task<Stream> ReadPackageEntryToStream(PackageArchiveReader packageArchiveReader, string fileName)
+    {
+        var outputStream = new MemoryStream();
+        var entryStream = packageArchiveReader.GetEntry(fileName).Open();
+        await entryStream.CopyToAsync(outputStream, CancellationToken.None);
+        await entryStream.FlushAsync(CancellationToken.None);
+        outputStream.Position = 0;
+        return outputStream;
+    }
+
+    private static AssemblyName GetAssemblyName(Stream stream, string fileName)
+    {
+        using (var peReader = new PEReader(stream))
+        {
+            if (!peReader.HasMetadata)
+            {
+                return null;
+            }
+
+            var metadataReader = peReader.GetMetadataReader();
+            var assemblyDefinition = metadataReader.GetAssemblyDefinition();
+            var assemblyName = assemblyDefinition.GetAssemblyName();
+
+            return assemblyName;
+        }
+    }
+
+    /// <summary>
+    /// Evaluates the classification of an asset mapping. Is it correctly marked shipping or non-shipping?
+    /// </summary>
+    /// <param name="mapping">Mapping to evaluate</param>
     private static void EvaluateClassification(AssetMapping mapping)
     {
         // Check for misclassification
@@ -568,15 +604,11 @@ public class Program
         }
     }
 
-    private async Task EvaluateBlobs(IEnumerable<AssetMapping> assetMappings)
-    {
-        var blobs = assetMappings.Where(a => a.AssetType == AssetType.Blob);
-        var tasks = blobs.Select(mapping => EvaluateBlob(mapping)).ToArray();
-
-        await Task.WhenAll(tasks);
-        
-    }
-
+    /// <summary>
+    /// Evaluates a single blob mapping for issues.
+    /// </summary>
+    /// <param name="mapping"></param>
+    /// <returns></returns>
     private async Task EvaluateBlob(AssetMapping mapping)
     {
         try
@@ -618,8 +650,18 @@ public class Program
         }
     }
 
-    private List<AssetMapping> MapFilesForManifest(XDocument vmrMergedManifestContent, string baseDirectory, string diffDirectory, string repoMergedManifestPath, XDocument repoBuildMergeManifestContent)
+    /// <summary>
+    /// Maps files in the base build to the VMR build based on the merged manifest.
+    /// </summary>
+    /// <param name="vmrMergedManifestContent">VMR manifest</param>
+    /// <param name="baseDirectory">Base build directory</param>
+    /// <param name="diffDirectory">Base VMR build directory</param>
+    /// <param name="repoMergedManifestPath">Path to merged manifest for the base build</param>
+    /// <returns>List of asset mappings for the baseline manifest.</returns>
+    private List<AssetMapping> MapFilesForManifest(XDocument vmrMergedManifestContent, string baseDirectory, string diffDirectory, string repoMergedManifestPath)
     {
+        var repoBuildMergeManifestContent = XDocument.Load(repoMergedManifestPath);
+
         List<AssetMapping> assetMappings = new();
         Console.WriteLine($"Mapping base build outputs in {repoMergedManifestPath} to VMR.");
 
@@ -633,6 +675,10 @@ public class Program
                     break;
                 case "Package":
                     assetMappings.Add(MapPackage(vmrMergedManifestContent, element, baseDirectory, diffDirectory));
+                    break;
+                case "Pdb":
+                    // NYI
+                    // assetMappings.Add(MapPdb(vmrMergedManifestContent, element, baseDirectory, diffDirectory));
                     break;
                 case "Build":
                 case "SigningInformation":
@@ -670,7 +716,11 @@ public class Program
         // smarter in some cases using that.
 
         string baseVersion = VersionIdentifier.GetVersion(baseBlobId);
-        string strippedBaseBlobFileName = baseBlobFileName.Replace(baseVersion, string.Empty);
+        string strippedBaseBlobFileName = baseBlobFileName;
+        if (baseVersion != null)
+        {
+            strippedBaseBlobFileName = strippedBaseBlobFileName.Replace(baseVersion, string.Empty);
+        }
 
         var diffBlobElement = diffMergedManifestContent.Descendants("Blob")
             .FirstOrDefault(p =>
@@ -678,7 +728,11 @@ public class Program
                 string diffBlobId = p.Attribute("Id")?.Value;
                 string diffBlobFileName = Path.GetFileName(diffBlobId);
                 string diffVersion = VersionIdentifier.GetVersion(diffBlobId);
-                string strippedDiffBlobFileName = diffBlobFileName.Replace(diffVersion, string.Empty);
+                string strippedDiffBlobFileName = diffBlobFileName;
+                if (diffVersion != null)
+                {
+                    strippedDiffBlobFileName = strippedDiffBlobFileName.Replace(diffVersion, string.Empty);
+                }
                 return strippedBaseBlobFileName.Equals(strippedDiffBlobFileName, StringComparison.OrdinalIgnoreCase);
             });
 
