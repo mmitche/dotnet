@@ -51,10 +51,10 @@ steps:
 
 - script: |
     $(Build.SourcesDirectory)\.dotnet\dotnet.exe $(Build.SourcesDirectory)\artifacts\bin\BuildComparer\Debug\BuildComparer.dll
-    -vmrManifestPath '$(Build.ArtifactStagingDirectory)\AssetManifests\MergedManifest.xml'
-    -vmrAssetBasePath '$(Build.ArtifactStagingDirectory)\vmr-assets\'
-    -msftAssetBasePath '$(Build.ArtifactStagingDirectory)\base-assets\'
-    -report '$(Build.SourcesDirectory)\artifacts\AssetBaselines\BaselineComparison.xml'
+    -vmrManifestPath "$(Build.ArtifactStagingDirectory)\AssetManifests\MergedManifest.xml"
+    -vmrAssetBasePath "$(Build.ArtifactStagingDirectory)\vmr-assets\"
+    -msftAssetBasePath "$(Build.ArtifactStagingDirectory)\base-assets\"
+    -report "$(Build.SourcesDirectory)\artifacts\AssetBaselines\BaselineComparison.xml"
   displayName: Validate Asset Baselines
 
 - task: AzureCLI@2
@@ -75,10 +75,10 @@ steps:
 
 - script: |
     $(Build.SourcesDirectory)\.dotnet\dotnet.exe $(Build.SourcesDirectory)\artifacts\bin\BuildComparer\Debug\BuildComparer.dll
-    -vmrManifestPath '$(Build.ArtifactStagingDirectory)\AssetManifests\MergedManifest.xml'
-    -vmrAssetBasePath '$(Build.ArtifactStagingDirectory)\vmr-assets\'
-    -msftAssetBasePath '$(Build.ArtifactStagingDirectory)\base-assets\'
-    -report '$(Build.SourcesDirectory)\artifacts\AssetBaselines\BaselineComparison.xml'
+    -vmrManifestPath "$(Build.ArtifactStagingDirectory)\AssetManifests\MergedManifest.xml"
+    -vmrAssetBasePath "$(Build.ArtifactStagingDirectory)\vmr-assets\"
+    -msftAssetBasePath "$(Build.ArtifactStagingDirectory)\base-assets\"
+    -report "$(Build.SourcesDirectory)\artifacts\AssetBaselines\BaselineComparison.xml"
   displayName: Validate Asset Baselines
 
 - task: 1ES.PublishPipelineArtifact@1
