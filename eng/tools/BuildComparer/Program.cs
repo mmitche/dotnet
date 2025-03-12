@@ -178,6 +178,8 @@ public class Program
 
     private void GenerateAssetMappings()
     {
+        Console.WriteLine($"Loading VMR manifest from {_vmrManifestPath}");
+
         // Load the XML file
         XDocument vmrMergedManifestContent = XDocument.Load(_vmrManifestPath);
 
