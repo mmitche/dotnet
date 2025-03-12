@@ -3,6 +3,7 @@
 
 using System.Collections.Concurrent;
 using System.CommandLine;
+using Microsoft.DotNet.Cli.Extensions;
 using Microsoft.DotNet.Tools.Test;
 using Microsoft.TemplateEngine.Cli.Commands;
 using Microsoft.Testing.Platform.Helpers;
@@ -59,7 +60,6 @@ namespace Microsoft.DotNet.Cli
 
                     if (!_msBuildHandler.EnqueueTestApplications())
                     {
-                        _output.WriteMessage(LocalizableStrings.CmdUnsupportedVSTestTestApplicationsDescription, new SystemConsoleColor { ConsoleColor = ConsoleColor.Red });
                         return ExitCode.GenericFailure;
                     }
                 }

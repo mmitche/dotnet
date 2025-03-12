@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.CommandLine;
+using Microsoft.DotNet.Cli.Extensions;
 using LocalizableStrings = Microsoft.DotNet.Tools.Package.Search.LocalizableStrings;
 
 namespace Microsoft.DotNet.Cli
@@ -40,11 +41,7 @@ namespace Microsoft.DotNet.Cli
             Arity = ArgumentArity.Zero
         }.ForwardAs("--exact-match");
 
-        public static readonly CliOption<bool> Interactive = new ForwardedOption<bool>("--interactive")
-        {
-            Description = LocalizableStrings.InteractiveDescription,
-            Arity = ArgumentArity.Zero
-        }.ForwardAs("--interactive");
+        public static readonly CliOption<bool> Interactive = CommonOptions.InteractiveOption().ForwardIfEnabled("--interactive");
 
         public static readonly CliOption<bool> Prerelease = new ForwardedOption<bool>("--prerelease")
         {

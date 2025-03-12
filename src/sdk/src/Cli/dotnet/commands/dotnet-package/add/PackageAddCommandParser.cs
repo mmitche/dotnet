@@ -8,6 +8,7 @@ using LocalizableStrings = Microsoft.DotNet.Tools.Package.Add.LocalizableStrings
 using Microsoft.Extensions.EnvironmentAbstractions;
 using NuGet.Versioning;
 using Microsoft.DotNet.Tools.Package.Add;
+using Microsoft.DotNet.Cli.Extensions;
 
 namespace Microsoft.DotNet.Cli
 {
@@ -70,11 +71,7 @@ namespace Microsoft.DotNet.Cli
             HelpName = LocalizableStrings.CmdPackageDirectory
         }.ForwardAsSingle(o => $"--package-directory {o}");
 
-        public static readonly CliOption<bool> InteractiveOption = new ForwardedOption<bool>("--interactive")
-        {
-            Description = CommonLocalizableStrings.CommandInteractiveOptionDescription,
-            Arity = ArgumentArity.Zero
-        }.ForwardAs("--interactive");
+        public static readonly CliOption<bool> InteractiveOption = CommonOptions.InteractiveOption().ForwardIfEnabled("--interactive");
 
         public static readonly CliOption<bool> PrereleaseOption = new ForwardedOption<bool>("--prerelease")
         {

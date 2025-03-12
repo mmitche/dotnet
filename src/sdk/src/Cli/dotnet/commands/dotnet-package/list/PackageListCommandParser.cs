@@ -5,6 +5,7 @@ using System.CommandLine;
 using Microsoft.DotNet.Tools.Package.List;
 using Microsoft.DotNet.Tools;
 using LocalizableStrings = Microsoft.DotNet.Tools.Package.List.LocalizableStrings;
+using Microsoft.DotNet.Cli.Extensions;
 
 namespace Microsoft.DotNet.Cli
 {
@@ -72,11 +73,7 @@ namespace Microsoft.DotNet.Cli
         }.ForwardAsManyArgumentsEachPrefixedByOption("--source")
         .AllowSingleArgPerToken();
 
-        public static readonly CliOption InteractiveOption = new ForwardedOption<bool>("--interactive")
-        {
-            Description = CommonLocalizableStrings.CommandInteractiveOptionDescription,
-            Arity = ArgumentArity.Zero
-        }.ForwardAs("--interactive");
+        public static readonly CliOption InteractiveOption = CommonOptions.InteractiveOption().ForwardIfEnabled("--interactive");
 
         public static readonly CliOption VerbosityOption = new ForwardedOption<VerbosityOptions>("--verbosity", "-v")
         {

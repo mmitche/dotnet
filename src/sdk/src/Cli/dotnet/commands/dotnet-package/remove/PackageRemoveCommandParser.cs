@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.CommandLine;
+using Microsoft.DotNet.Cli.Extensions;
 using Microsoft.DotNet.Tools;
 using Microsoft.DotNet.Tools.Package.Remove;
 
@@ -15,11 +16,7 @@ namespace Microsoft.DotNet.Cli
             Arity = ArgumentArity.OneOrMore,
         };
 
-        public static readonly CliOption<bool> InteractiveOption = new ForwardedOption<bool>("--interactive")
-        {
-            Description = CommonLocalizableStrings.CommandInteractiveOptionDescription,
-            Arity = ArgumentArity.Zero
-        }.ForwardAs("--interactive");
+        public static readonly CliOption<bool> InteractiveOption = CommonOptions.InteractiveOption().ForwardIfEnabled("--interactive");
 
         private static readonly CliCommand Command = ConstructCommand();
 

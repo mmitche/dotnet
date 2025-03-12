@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.CommandLine;
+using Microsoft.DotNet.Cli.Extensions;
 using Microsoft.DotNet.Cli.Utils;
 using Microsoft.DotNet.Tools;
 using LocalizableStrings = Microsoft.DotNet.Tools.Restore.LocalizableStrings;
@@ -35,10 +36,6 @@ namespace Microsoft.DotNet.Cli
             Arity = ArgumentArity.Zero
         }.ForwardAs("--ignore-failed-sources");
 
-        public static CliOption<bool> InteractiveRestoreOption = new ForwardedOption<bool>("--interactive")
-        {
-            Description = CommonLocalizableStrings.CommandInteractiveOptionDescription,
-            Arity = ArgumentArity.Zero
-        }.ForwardAs(Constants.RestoreInteractiveOption);
+        public static CliOption<bool> InteractiveRestoreOption = CommonOptions.InteractiveOption();
     }
 }
