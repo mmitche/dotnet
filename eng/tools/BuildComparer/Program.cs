@@ -2,6 +2,7 @@
 using NuGet.Packaging;
 using System.Collections.Immutable;
 using System.CommandLine;
+using System.Formats.Tar;
 using System.IO.Compression;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -44,7 +45,12 @@ public class Program
         var parallelismArgument = new CliOption<int>("-parallel")
         {
             Description = "Amount of parallelism used while analyzing the builds.",
-            DefaultValueFactory = _ => 16,
+            DefaultValueFactory = _ => 8,
+            Required = true
+        };
+        var baselineArgument = new CliOption<string>("-baseline")
+        {
+            Description = "Path to the baseline build manifest.",
             Required = true
         };
         var baselineArgument = new CliOption<string>("-baseline")
@@ -385,7 +391,7 @@ public class Program
             mapping.Issues.Add(new Issue
             {
                 IssueType = IssueType.MissingPackageContent,
-                Description = $"Package '{mapping.Id}' is missing the following files in the VMR: {string.Join(", ", missingFile)}"
+                Description = missingFile,
             });
         }
 
@@ -397,7 +403,7 @@ public class Program
             mapping.Issues.Add(new Issue
             {
                 IssueType = IssueType.ExtraPackageContent,
-                Description = $"Package '{mapping.Id}' has extra files in the VMR: {string.Join(", ", extraFile)}"
+                Description = extraFile
             });
         }
 
@@ -532,14 +538,152 @@ public class Program
     {
         // Switch on the file type, and call a helper based on the type
 
-        switch (Path.GetExtension(mapping.Id))
+        if (mapping.Id.EndsWith(".zip"))
         {
-            case ".zip":
-                await CompareZipArchiveContents(mapping);
-                break;
-            default:
-                return;
+            await CompareZipArchiveContents(mapping);
         }
+        else if (mapping.Id.EndsWith(".tar.gz") || mapping.Id.EndsWith(".tgz"))
+        {
+            await CompareTarArchiveContents(mapping);
+        }
+    }
+    private async Task CompareTarArchiveContents(AssetMapping mapping)
+    {
+        var diffTarPath = mapping.DiffFilePath;
+        var baselineTarPath = mapping.BaseBuildFilePath;
+        // If either of the paths don't exist, we can't run this comparison
+        if (diffTarPath == null || baselineTarPath == null)
+        {
+            return;
+        }
+
+        // Create temporary directories for extraction
+        string tempDiffDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        string tempBaselineDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
+        try
+        {
+            // Create the temporary directories
+            Directory.CreateDirectory(tempDiffDir);
+            Directory.CreateDirectory(tempBaselineDir);
+
+            // Extract the archives
+            await ExtractTarGzArchive(diffTarPath, tempDiffDir);
+            await ExtractTarGzArchive(baselineTarPath, tempBaselineDir);
+
+            // Get file lists after extraction
+            IEnumerable<string> baselineFiles = GetFilesRelativePaths(tempBaselineDir).ToList();
+            IEnumerable<string> diffFiles = GetFilesRelativePaths(tempDiffDir);
+
+            // Compare file lists
+            CompareBlobArchiveFileLists(mapping, baselineFiles, diffFiles);
+
+            // Compare assembly versions
+            await CompareExtractedAssemblyVersions(mapping, tempBaselineDir, tempDiffDir);
+        }
+        catch (Exception e)
+        {
+            mapping.EvaluationErrors.Add(e.ToString());
+        }
+        finally
+        {
+            // Clean up temporary directories
+            if (Directory.Exists(tempDiffDir))
+            {
+                Directory.Delete(tempDiffDir, true);
+            }
+            if (Directory.Exists(tempBaselineDir))
+            {
+                Directory.Delete(tempBaselineDir, true);
+            }
+        }
+    }
+
+    private async Task ExtractTarGzArchive(string archivePath, string destinationPath)
+    {
+        using (FileStream fileStream = File.OpenRead(archivePath))
+        {
+            // If it's a .tar.gz or .tgz file, decompress it first
+            if (archivePath.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase) ||
+                archivePath.EndsWith(".tgz", StringComparison.OrdinalIgnoreCase))
+            {
+                using (GZipStream gzipStream = new GZipStream(fileStream, CompressionMode.Decompress))
+                using (TarReader reader = new TarReader(gzipStream))
+                {
+                    TarEntry entry;
+                    while ((entry = reader.GetNextEntry()) != null)
+                    {
+                        string entryDestination = Path.Combine(destinationPath, entry.Name);
+
+                        // Make sure directory exists
+                        string directoryName = Path.GetDirectoryName(entryDestination);
+                        if (!string.IsNullOrEmpty(directoryName))
+                        {
+                            Directory.CreateDirectory(directoryName);
+                        }
+
+                        // Extract files (skip directories as they're created above)
+                        if (!entry.Name.EndsWith("/") && entry.DataStream != null)
+                        {
+                            using (FileStream outputStream = File.Create(entryDestination))
+                            {
+                                await entry.DataStream.CopyToAsync(outputStream);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private IEnumerable<string> GetFilesRelativePaths(string directory)
+    {
+        string[] fullPaths = Directory.GetFiles(directory, "*", SearchOption.AllDirectories);
+        return fullPaths.Select(path => Path.GetRelativePath(directory, path));
+    }
+
+    private async Task CompareExtractedAssemblyVersions(AssetMapping mapping, string baselineDir, string diffDir)
+    {
+        // Find all assemblies in both directories
+        var baselineAssemblies = Directory.GetFiles(baselineDir, "*.*", SearchOption.AllDirectories)
+            .Where(f => IncludedAssemblyNameCheckFileExtensions.Contains(Path.GetExtension(f)));
+
+        var diffAssemblies = Directory.GetFiles(diffDir, "*.*", SearchOption.AllDirectories)
+            .Where(f => IncludedAssemblyNameCheckFileExtensions.Contains(Path.GetExtension(f)));
+
+        // Get relative paths for comparison
+        var baselineRelativePaths = baselineAssemblies.Select(f => Path.GetRelativePath(baselineDir, f));
+        var diffRelativePaths = diffAssemblies.Select(f => Path.GetRelativePath(diffDir, f));
+
+        // Find common files by comparing file names after version stripping
+        foreach (var baselinePath in baselineRelativePaths)
+        {
+            string baselineStripped = RemoveVersionsNormalized(baselinePath);
+
+            // Find matching file in diff
+            var matchingDiffPath = diffRelativePaths.FirstOrDefault(d =>
+                RemoveVersionsNormalized(d).Equals(baselineStripped, StringComparison.OrdinalIgnoreCase));
+
+            if (matchingDiffPath != null)
+            {
+                try
+                {
+                    using var baselineStream = File.OpenRead(Path.Combine(baselineDir, baselinePath));
+                    using var diffStream = File.OpenRead(Path.Combine(diffDir, matchingDiffPath));
+
+                    CompareAssemblyVersions(mapping, baselinePath, baselineStream, diffStream);
+                }
+                catch (Exception e)
+                {
+                    mapping.EvaluationErrors.Add($"Error comparing {baselinePath}: {e.Message}");
+                }
+            }
+        }
+    }
+
+    private static string RemoveVersionsNormalized(string path)
+    {
+        return VersionIdentifier.RemoveVersions(path.Replace("\\", "//"));
     }
 
     private async Task CompareZipArchiveContents(AssetMapping mapping)
@@ -629,8 +773,8 @@ public class Program
     {
         // Because these typically contain version numbers in their paths, we need to go and remove those.
 
-        var strippedBaselineFiles = baselineFiles.Select(f => VersionIdentifier.RemoveVersions(f)).ToList();
-        var strippedDiffFiles = diffFiles.Select(f => VersionIdentifier.RemoveVersions(f)).ToList();
+        var strippedBaselineFiles = baselineFiles.Select(f => RemoveVersionsNormalized(f)).ToList();
+        var strippedDiffFiles = diffFiles.Select(f => RemoveVersionsNormalized(f)).ToList();
 
         var missingFiles = strippedBaselineFiles.Except(strippedDiffFiles);
         foreach (var missingFile in missingFiles)
@@ -638,7 +782,7 @@ public class Program
             mapping.Issues.Add(new Issue
             {
                 IssueType = IssueType.MissingPackageContent,
-                Description = $"Blob '{mapping.Id}' is missing the following files in the VMR: {string.Join(", ", missingFile)}"
+                Description = missingFile
             });
         }
         // Compare the other way, and identify content in the VMR that is not in the baseline
@@ -648,7 +792,7 @@ public class Program
             mapping.Issues.Add(new Issue
             {
                 IssueType = IssueType.ExtraPackageContent,
-                Description = $"Blob '{mapping.Id}' has extra files in the VMR: {string.Join(", ", extraFile)}"
+                Description = extraFile
             });
         }
     }
