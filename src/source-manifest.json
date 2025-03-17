@@ -1,11 +1,11 @@
 {
   "repositories": [
     {
-      "packageVersion": "10.0.0-beta.25163.2",
+      "packageVersion": "10.0.0-beta.25164.6",
       "barId": null,
       "path": "arcade",
       "remoteUri": "https://github.com/dotnet/arcade",
-      "commitSha": "8e4ea93f74bfbefa0df803dc8c842fa4cf65502c"
+      "commitSha": "1912d9f4fc410d421a01b5a09131aae234b603fa"
     },
     {
       "packageVersion": "8.2.2-preview.1.24521.5",
@@ -71,32 +71,32 @@
       "commitSha": "345742da75dc6c5fe485ef1236d3f034ebcdcb53"
     },
     {
-      "packageVersion": "17.15.0-preview-25163-10",
+      "packageVersion": "17.15.0-preview-25164-14",
       "barId": null,
       "path": "msbuild",
       "remoteUri": "https://github.com/dotnet/msbuild",
-      "commitSha": "a2cac59fdfbef73025329990864c1f8d2c7ece23"
+      "commitSha": "1a41d7b6ff84064c740c0e1c572b29fd945cf5ae"
     },
     {
-      "packageVersion": "6.14.0-preview.1.77",
+      "packageVersion": "6.14.0-preview.1.78",
       "barId": null,
       "path": "nuget-client",
       "remoteUri": "https://github.com/nuget/nuget.client",
-      "commitSha": "5759cb3739c039ac6fb56fbbaed2107bfff44150"
+      "commitSha": "7890545a4d8a9232de4a74c90c093c8b2b4c7407"
     },
     {
-      "packageVersion": "9.0.0-preview.25163.3",
+      "packageVersion": "9.0.0-preview.25166.1",
       "barId": null,
       "path": "razor",
       "remoteUri": "https://github.com/dotnet/razor",
-      "commitSha": "284b32d1cdc69c2974c2a8653f64751c7082865d"
+      "commitSha": "b7956b2fcba21198410809e2707d652d650343fb"
     },
     {
-      "packageVersion": "4.14.0-3.25163.9",
+      "packageVersion": "4.14.0-3.25164.10",
       "barId": null,
       "path": "roslyn",
       "remoteUri": "https://github.com/dotnet/roslyn",
-      "commitSha": "35e242941f72cc88cea01d4ab3c13153347c0078"
+      "commitSha": "517e95f9430d387e0e387a23fa2c8351a0863c4a"
     },
     {
       "packageVersion": "3.12.0-beta1.25155.1",
@@ -106,11 +106,11 @@
       "commitSha": "1e98fa3f107e780569a167a9250bb600778456dc"
     },
     {
-      "packageVersion": "10.0.0-preview.3.25162.19",
+      "packageVersion": "10.0.0-preview.3.25166.3",
       "barId": null,
       "path": "runtime",
       "remoteUri": "https://github.com/dotnet/runtime",
-      "commitSha": "5ff417fd7fbff9bbd3c66f35a1721ddaa37840eb"
+      "commitSha": "544cf0ccbc744015001933658c04f4bf364abb07"
     },
     {
       "packageVersion": "10.0.0-preview.25162.1",
@@ -124,7 +124,7 @@
       "barId": null,
       "path": "sdk",
       "remoteUri": "https://github.com/dotnet/sdk",
-      "commitSha": "5b2713fa05fe98c1b9a7a5c12815aa8c36e07961"
+      "commitSha": "706bc552197fd9385739bba165bd468ab5311525"
     },
     {
       "packageVersion": "10.0.616001",
@@ -134,18 +134,18 @@
       "commitSha": "96dceea0417e9ff1b47664c2d2998b9abf541f0c"
     },
     {
-      "packageVersion": "10.0.616001",
+      "packageVersion": "10.0.616401",
       "barId": null,
       "path": "source-build-reference-packages",
       "remoteUri": "https://github.com/dotnet/source-build-reference-packages",
-      "commitSha": "8f9f6fa14523b2f2475ea0a86be1cf60b5de5336"
+      "commitSha": "c3d4c372a15c2de79a2f26fe2b6b3644996d8550"
     },
     {
-      "packageVersion": "10.0.0-beta.25161.1",
+      "packageVersion": "10.0.0-beta.25165.1",
       "barId": null,
       "path": "sourcelink",
       "remoteUri": "https://github.com/dotnet/sourcelink",
-      "commitSha": "525af3dff9ce156ada7ace06bf4bdabe2153e3cb"
+      "commitSha": "135f35b615bf81eee330a77083c6924a057fb706"
     },
     {
       "packageVersion": "2.2.0-beta.25124.1",
@@ -155,11 +155,11 @@
       "commitSha": "e3d70b066e2e27c7050928e1095df9e5ae859dfd"
     },
     {
-      "packageVersion": "10.0.100-preview.3.25164.1",
+      "packageVersion": "10.0.100-preview.3.25166.7",
       "barId": null,
       "path": "templating",
       "remoteUri": "https://github.com/dotnet/templating",
-      "commitSha": "59235d53af7bf92aced16d9b813c97697af56962"
+      "commitSha": "c8234e552adb1878dd31aecbc4f4fc54d9efec57"
     },
     {
       "packageVersion": "17.14.0-preview-25157-01",
