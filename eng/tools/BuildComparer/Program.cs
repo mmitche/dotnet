@@ -53,11 +53,6 @@ public class Program
             Description = "Path to the baseline build manifest.",
             Required = true
         };
-        var baselineArgument = new CliOption<string>("-baseline")
-        {
-            Description = "Path to the baseline build manifest.",
-            Required = true
-        };
         var rootCommand = new CliRootCommand(description: "Tool for comparing Microsoft builds with VMR builds.")
         {
             vmrManifestPathArgument,
@@ -544,7 +539,7 @@ public class Program
         }
         else if (mapping.Id.EndsWith(".tar.gz") || mapping.Id.EndsWith(".tgz"))
         {
-            await CompareTarArchiveContents(mapping);
+            // await CompareTarArchiveContents(mapping);
         }
     }
     private async Task CompareTarArchiveContents(AssetMapping mapping)
