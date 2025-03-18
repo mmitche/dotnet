@@ -22,7 +22,7 @@ public class BaselineEntry
     public Regex DescriptionMatch { get; set; }
     
     [XmlIgnore]
-    public bool? AllowOnlyPatchVariance { get; set; }
+    public bool? AllowRevisionOnlyVariance { get; set; }
 
     [XmlAttribute]
     /// <summary>
@@ -77,7 +77,8 @@ public class Baseline
         }
     }
 
-    static Regex patchVarianceRegex = new Regex(@"Version=(\d+\.\d+\.\d+)\.\d+.*Version=\1\.\d+");
+    static Regex revisionVarianceRegex = new Regex(@"Version=(\d+\.\d+\.\d+)\.\d+.*Version=\1\.\d+");
+    static Regex noRevisionVarianceRegex = new Regex(@"Version=(\d+\.\d+\.\d+\.\d+),.*Version=\1");
 
     // Check which baseline entries match against the given asset issue.
     public List<BaselineEntry> GetMatchingBaselineEntries(Issue assetIssue, AssetMapping assetMapping)
@@ -85,18 +86,17 @@ public class Baseline
         var matchingEntries = new List<BaselineEntry>();
         foreach (var entry in _entries)
         {
-            bool isMatch = false;
             if (entry.IssueType == assetIssue.IssueType &&
                 (entry.IdMatch == null || entry.IdMatch.IsMatch(assetMapping.Id)) &&
                 (entry.DescriptionMatch == null || entry.DescriptionMatch.IsMatch(assetIssue.Description)))
             {
-                isMatch = true;
-            }
-            // Check if the entry allows assembly patch variance
-            if (isMatch && (!(entry.AllowOnlyPatchVariance ?? false) || patchVarianceRegex.IsMatch(assetIssue.Description)))
-            {
-                // If the entry allows assembly patch variance, add it to the matching entries
-                matchingEntries.Add(entry);
+                if (entry.AllowRevisionOnlyVariance == null ||
+                    (entry.AllowRevisionOnlyVariance.Value && revisionVarianceRegex.IsMatch(assetIssue.Description)) ||
+                    (!entry.AllowRevisionOnlyVariance.Value && noRevisionVarianceRegex.IsMatch(assetIssue.Description)))
+                {
+                    // If the entry allows assembly revision variance, add it to the matching entries
+                    matchingEntries.Add(entry);
+                }
             }
         }
         return matchingEntries;
