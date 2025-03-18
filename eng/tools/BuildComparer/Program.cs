@@ -281,13 +281,18 @@ public class Program
         Console.WriteLine($"Issues: {_comparisonReport.IssueCount}");
         Console.WriteLine($"Baselined issues: {_comparisonReport.BaselineCount}");
 
+        var allAssetWithIssues = _assetMappings
+            .Where(mapping => mapping.Issues.Any() && !mapping.EvaluationErrors.Any())
+            .ToList();
+
         // Print detailed issue counts by type
-        var issueCountsByType = _comparisonReport.AssetsWithIssues
+        var issueCountsByType = allAssetWithIssues
             .SelectMany(mapping => mapping.Issues)
+            .Where(issue => issue.Baseline == null)
             .GroupBy(issue => issue.IssueType)
             .ToDictionary(group => group.Key, group => group.Count());
 
-        var baselinedIssueCountsByType = _comparisonReport.AssetsWithIssues
+        var baselinedIssueCountsByType = allAssetWithIssues
             .SelectMany(mapping => mapping.Issues)
             .Where(issue => issue.Baseline != null)
             .GroupBy(issue => issue.IssueType)
@@ -298,7 +303,7 @@ public class Program
         {
             issueCountsByType.TryGetValue(issueType, out int issueCount);
             baselinedIssueCountsByType.TryGetValue(issueType, out int baselinedIssueCount);
-            Console.WriteLine($"  {issueType}: Issues = {issueCount}, Baselined issues = {baselinedIssueCount}");
+            Console.WriteLine($"  {issueType}: Issues w/o Baseline = {issueCount}, Baselined issues = {baselinedIssueCount}");
         }
     }
 

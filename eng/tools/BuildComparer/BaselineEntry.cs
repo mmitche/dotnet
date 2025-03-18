@@ -22,7 +22,7 @@ public class BaselineEntry
     public Regex DescriptionMatch { get; set; }
     
     [XmlIgnore]
-    public bool? AllowAssemblyPatchVariance { get; set; }
+    public bool? AllowOnlyPatchVariance { get; set; }
 
     [XmlAttribute]
     /// <summary>
@@ -93,7 +93,7 @@ public class Baseline
                 isMatch = true;
             }
             // Check if the entry allows assembly patch variance
-            if (isMatch && (!(entry.AllowAssemblyPatchVariance ?? false) || patchVarianceRegex.IsMatch(assetIssue.Description)))
+            if (isMatch && (!(entry.AllowOnlyPatchVariance ?? false) || patchVarianceRegex.IsMatch(assetIssue.Description)))
             {
                 // If the entry allows assembly patch variance, add it to the matching entries
                 matchingEntries.Add(entry);
