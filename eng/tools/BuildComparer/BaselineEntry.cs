@@ -20,6 +20,10 @@ public class BaselineEntry
     /// Regex used to match the description of the asset.
     /// </summary>
     public Regex DescriptionMatch { get; set; }
+    
+    [XmlIgnore]
+    public bool? AllowAssemblyPatchVariance { get; set; }
+
     [XmlAttribute]
     /// <summary>
     /// Justification for the baseline.
@@ -73,16 +77,25 @@ public class Baseline
         }
     }
 
+    static Regex patchVarianceRegex = new Regex(@"Version=(\d+\.\d+\.\d+)\.\d+.*Version=\1\.\d+");
+
     // Check which baseline entries match against the given asset issue.
     public List<BaselineEntry> GetMatchingBaselineEntries(Issue assetIssue, AssetMapping assetMapping)
     {
         var matchingEntries = new List<BaselineEntry>();
         foreach (var entry in _entries)
         {
+            bool isMatch = false;
             if (entry.IssueType == assetIssue.IssueType &&
                 (entry.IdMatch == null || entry.IdMatch.IsMatch(assetMapping.Id)) &&
                 (entry.DescriptionMatch == null || entry.DescriptionMatch.IsMatch(assetIssue.Description)))
             {
+                isMatch = true;
+            }
+            // Check if the entry allows assembly patch variance
+            if (isMatch && (!(entry.AllowAssemblyPatchVariance ?? false) || patchVarianceRegex.IsMatch(assetIssue.Description)))
+            {
+                // If the entry allows assembly patch variance, add it to the matching entries
                 matchingEntries.Add(entry);
             }
         }

@@ -280,6 +280,26 @@ public class Program
         Console.WriteLine($"Errors: {_comparisonReport.ErrorCount}");
         Console.WriteLine($"Issues: {_comparisonReport.IssueCount}");
         Console.WriteLine($"Baselined issues: {_comparisonReport.BaselineCount}");
+
+        // Print detailed issue counts by type
+        var issueCountsByType = _comparisonReport.AssetsWithIssues
+            .SelectMany(mapping => mapping.Issues)
+            .GroupBy(issue => issue.IssueType)
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        var baselinedIssueCountsByType = _comparisonReport.AssetsWithIssues
+            .SelectMany(mapping => mapping.Issues)
+            .Where(issue => issue.Baseline != null)
+            .GroupBy(issue => issue.IssueType)
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        Console.WriteLine("Detailed issue counts by type:");
+        foreach (var issueType in Enum.GetValues(typeof(IssueType)).Cast<IssueType>())
+        {
+            issueCountsByType.TryGetValue(issueType, out int issueCount);
+            baselinedIssueCountsByType.TryGetValue(issueType, out int baselinedIssueCount);
+            Console.WriteLine($"  {issueType}: Issues = {issueCount}, Baselined issues = {baselinedIssueCount}");
+        }
     }
 
     /// <summary>
@@ -786,7 +806,7 @@ public class Program
             mapping.Issues.Add(new Issue
             {
                 IssueType = IssueType.AssemblyVersionMismatch,
-                Description = $"Assembly '{fileName}' in blob '{mapping.Id}' has different versions in the VMR and base build."
+                Description = $"Assembly '{fileName}' in {mapping.AssetType.ToString().ToLowerInvariant()} '{mapping.Id}' has different but unknown versions in the VMR and base build."
             });
         }
         else if (baselineAssemblyName == null && testAssemblyName == null)
@@ -799,7 +819,8 @@ public class Program
             mapping.Issues.Add(new Issue
             {
                 IssueType = IssueType.AssemblyVersionMismatch,
-                Description = $"Assembly '{fileName}' in blob '{mapping.Id}' has different versions in the VMR and base build. VMR version: {baselineAssemblyName}, base build version: {testAssemblyName}"
+                Description = $"Assembly '{fileName}' in {mapping.AssetType.ToString().ToLowerInvariant()} '{mapping.Id}'. " +
+                    $"VMR version: {baselineAssemblyName}, base build version: {testAssemblyName}"
             });
         }
     }
